@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Hash, Auth, Log, DB};
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Auth\Events\Registered;
+use Cloudinary\Cloudinary;
+use Cloudinary\Configuration\Configuration;
 
 class GoogleController extends Controller
 {
@@ -96,46 +98,64 @@ class GoogleController extends Controller
      * Store Data Registrasi Mitra
      */
     public function storeMitra(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:8|confirmed',
-            'sku' => 'required|file|mimes:jpg,png,pdf',
-            'syarat' => 'accepted',
-            'jenis_usaha' => 'required|in:Jasa,Produk',
-            'no_hp' => 'required'
+{
+    $request->validate([
+        'email'       => 'required|email|unique:users',
+        'password'    => 'required|min:8|confirmed',
+        'sku'         => 'required|file|mimes:jpg,png,pdf|max:5120',
+        'syarat'      => 'accepted',
+        'jenis_usaha' => 'required|in:Jasa,Produk',
+        'no_hp'       => 'required'
+    ]);
+
+    return DB::transaction(function () use ($request) {
+
+        // Upload SKU ke Cloudinary
+        $skuUrl = null;
+        if ($request->hasFile('sku')) {
+            $cloudinary = new Cloudinary(
+                Configuration::instance([
+                    'cloud' => [
+                        'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                        'api_key'    => env('CLOUDINARY_API_KEY'),
+                        'api_secret' => env('CLOUDINARY_API_SECRET'),
+                    ],
+                    'url' => ['secure' => true]
+                ])
+            );
+            $result = $cloudinary->uploadApi()->upload(
+                $request->file('sku')->getRealPath(),
+                ['resource_type' => 'auto'] // ← penting agar PDF juga bisa diupload
+            );
+            $skuUrl = $result['secure_url'];
+        }
+
+        $user = User::create([
+            'name'     => $request->nama_pemilik,
+            'email'    => $request->email,
+            'no_hp'    => $request->no_hp,
+            'password' => Hash::make($request->password),
+            'role'     => 'mitra',
+            'status'   => 'pending',
         ]);
 
-        return DB::transaction(function () use ($request) {
-            // ✅ Simpan ke tabel USERS beserta no_hp
-            $user = User::create([
-                'name'     => $request->nama_pemilik,
-                'email'    => $request->email,
-                'no_hp'    => $request->no_hp, // <- Tambahan di sini
-                'password' => Hash::make($request->password),
-                'role'     => 'mitra',
-                'status'   => 'pending',
-            ]);
+        Mitra::create([
+            'user_id'      => $user->id,
+            'nama_usaha'   => $request->nama_usaha,
+            'nama_pemilik' => $request->nama_pemilik,
+            'jenis_usaha'  => $request->jenis_usaha,
+            'nik'          => $request->nik,
+            'alamat_usaha' => $request->alamat_usaha,
+            'no_hp'        => $request->no_hp,
+            'dusun'        => $request->dusun,
+            'sku'          => $skuUrl, // ← sekarang URL Cloudinary
+            'status'       => 'pending',
+        ]);
 
-            // ✅ Simpan ke tabel MITRAS
-            Mitra::create([
-                'user_id'      => $user->id,
-                'nama_usaha'   => $request->nama_usaha,
-                'nama_pemilik' => $request->nama_pemilik,
-                'jenis_usaha'  => $request->jenis_usaha,
-                'nik'          => $request->nik,
-                'alamat_usaha' => $request->alamat_usaha,
-                'no_hp'        => $request->no_hp,
-                'dusun'        => $request->dusun,
-                'sku'          => $request->file('sku')->store('dokumen_mitra/sku', 'public'),
-                'status'       => 'pending',
-            ]);
+        event(new Registered($user));
+        Auth::login($user);
 
-            event(new Registered($user));
-            Auth::login($user);
-
-            // Karena notifikasi dipasang di VerifyEmailController, kita cukup redirect ke halaman menunggu.
-            return redirect()->route('mitra.menunggu')->with('success', 'Pendaftaran berhasil! Silakan verifikasi email Anda.');
-        });
-    }
+        return redirect()->route('mitra.menunggu')->with('success', 'Pendaftaran berhasil! Silakan verifikasi email Anda.');
+    });
+}
 }

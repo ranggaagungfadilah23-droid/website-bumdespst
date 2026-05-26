@@ -111,7 +111,7 @@
                     <td class="tbl-td">
                         <div class="flex gap-1.5 flex-wrap">
                             @if($item->mitra && $item->mitra->sku)
-                            <a href="{{ asset('storage/' . $item->mitra->sku) }}" target="_blank"
+                          <a href="{{ str_starts_with($item->mitra->sku ?? '', 'http') ? $item->mitra->sku : asset('storage/' . $item->mitra->sku) }}" target="_blank" ...>
                                class="inline-flex items-center gap-1 bg-sky-500 hover:bg-sky-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition">
                                 <i class="fas fa-file-signature text-[9px]"></i> SKU
                             </a>
