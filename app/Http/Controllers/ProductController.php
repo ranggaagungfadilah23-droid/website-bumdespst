@@ -5,10 +5,25 @@ namespace App\Http\Controllers;
 use App\Models\Produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Cloudinary\Cloudinary;
+use Cloudinary\Configuration\Configuration;
 
 class ProductController extends Controller
 {
+    private function getCloudinary()
+    {
+        return new Cloudinary(
+            Configuration::instance([
+                'cloud' => [
+                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                    'api_key'    => env('CLOUDINARY_API_KEY'),
+                    'api_secret' => env('CLOUDINARY_API_SECRET'),
+                ],
+                'url' => ['secure' => true]
+            ])
+        );
+    }
+
     public function index()
     {
         $produks = Produk::where('user_id', Auth::id())->latest()->get();
@@ -34,9 +49,10 @@ class ProductController extends Controller
         $gambarPublicId = null;
 
         if ($request->hasFile('gambar')) {
-            $upload         = Cloudinary::upload($request->file('gambar')->getRealPath());
-            $gambarUrl      = $upload->getSecurePath();
-            $gambarPublicId = $upload->getPublicId();
+            $cloudinary     = $this->getCloudinary();
+            $result         = $cloudinary->uploadApi()->upload($request->file('gambar')->getRealPath());
+            $gambarUrl      = $result['secure_url'];
+            $gambarPublicId = $result['public_id'];
         }
 
         Produk::create([
@@ -81,12 +97,15 @@ class ProductController extends Controller
         $gambarPublicId = $produk->gambar_public_id;
 
         if ($request->hasFile('gambar')) {
+            $cloudinary = $this->getCloudinary();
+
             if ($produk->gambar_public_id) {
-                Cloudinary::destroy($produk->gambar_public_id);
+                $cloudinary->uploadApi()->destroy($produk->gambar_public_id);
             }
-            $upload         = Cloudinary::upload($request->file('gambar')->getRealPath());
-            $gambarUrl      = $upload->getSecurePath();
-            $gambarPublicId = $upload->getPublicId();
+
+            $result         = $cloudinary->uploadApi()->upload($request->file('gambar')->getRealPath());
+            $gambarUrl      = $result['secure_url'];
+            $gambarPublicId = $result['public_id'];
         }
 
         $produk->update([
@@ -106,7 +125,8 @@ class ProductController extends Controller
         $produk = Produk::where('user_id', Auth::id())->findOrFail($id);
 
         if ($produk->gambar_public_id) {
-            Cloudinary::destroy($produk->gambar_public_id);
+            $cloudinary = $this->getCloudinary();
+            $cloudinary->uploadApi()->destroy($produk->gambar_public_id);
         }
 
         $produk->delete();
