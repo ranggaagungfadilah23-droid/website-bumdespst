@@ -107,23 +107,20 @@
                         @endif
                     </td>
 
-                    {{-- DOKUMEN --}}
-                    <td class="tbl-td">
-                        <div class="flex gap-1.5 flex-wrap">
-                            @if($item->mitra && $item->mitra->sku)
-                          <a href="{{ str_starts_with($item->mitra->sku ?? '', 'http') ? $item->mitra->sku : asset('storage/' . $item->mitra->sku) }}" target="_blank" ...>
-                               class="inline-flex items-center gap-1 bg-sky-500 hover:bg-sky-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition">
-                                <i class="fas fa-file-signature text-[9px]"></i> SKU
-                            </a>
-                            @endif
-                            @if($item->mitra && $item->mitra->ktp_path ?? false)
-                            <a href="{{ asset('storage/' . $item->mitra->ktp_path) }}" target="_blank"
-                               class="inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition">
-                                <i class="fas fa-id-card text-[9px]"></i> KTP
-                            </a>
-                            @endif
-                        </div>
-                    </td>
+                  {{-- DOKUMEN --}}
+<td class="tbl-td">
+    <div class="flex gap-1.5 flex-wrap">
+        @if($item->mitra && $item->mitra->sku)
+        <a href="{{ str_starts_with($item->mitra->sku ?? '', 'http') ? $item->mitra->sku : asset('storage/' . $item->mitra->sku) }}"
+           target="_blank"
+           class="inline-flex items-center gap-1 bg-sky-500 hover:bg-sky-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition">
+            <i class="fas fa-file-signature text-[9px]"></i> SKU
+        </a>
+        @else
+        <span class="text-slate-300 text-[11px] italic">Tidak ada</span>
+        @endif
+    </div>
+</td>
 
                     {{-- OPSI --}}
                     <td class="tbl-td text-center">
