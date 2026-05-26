@@ -117,7 +117,7 @@
                        data-name="{{ strtolower($jasa->nama_jasa) }}"
                        data-price="{{ $jasa->harga }}"
                        data-type="jasa">
-                        <img src="{{ asset('storage/' . $jasa->gambar) }}" alt="{{ $jasa->nama_jasa }}" class="jasa-img">
+                       <img src="{{ str_starts_with($jasa->gambar ?? '', 'http') ? $jasa->gambar : asset('storage/' . $jasa->gambar) }}" alt="{{ $jasa->nama_jasa }}" class="jasa-img">
                         <div class="jasa-info">
                             <div class="jasa-name">{{ $jasa->nama_jasa }}</div>
                             <div class="jasa-price">Rp {{ number_format($jasa->harga, 0, ',', '.') }}</div>
@@ -161,7 +161,7 @@
                        data-stok="{{ $produk->jumlah }}"
                        data-type="produk">
                         <div class="produk-img-wrap">
-                            <img src="{{ asset('storage/' . $produk->gambar) }}" alt="{{ $produk->nama_produk }}" loading="lazy">
+                          <img src="{{ str_starts_with($produk->gambar ?? '', 'http') ? $produk->gambar : asset('storage/' . $produk->gambar) }}" alt="{{ $produk->nama_produk }}" loading="lazy">
                             <span class="produk-badge">BUMDES</span>
                         </div>
                         <div class="produk-info">
