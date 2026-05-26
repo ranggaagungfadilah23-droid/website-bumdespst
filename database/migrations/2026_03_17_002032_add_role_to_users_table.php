@@ -9,11 +9,12 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-  public function up(): void
+public function up()
 {
     Schema::table('users', function (Blueprint $table) {
-        // Tambahkan kolom role setelah email
-        $table->string('role')->default('user')->after('email');
+        if (!Schema::hasColumn('users', 'role')) {
+            $table->string('role')->default('user');
+        }
     });
 }
 
