@@ -30,7 +30,7 @@
         </thead>
         <tbody>
             @php $grandTotalOmzet = 0; $grandTotalPendapatan = 0; @endphp
-            @forelse ($data as $item)
+            @forelse ($transaksi as $item)
             @php
                 $omzet      = $item->total_omzet ?? 0;       // ✅ kolom di bagihasils
                 $pendapatan = $item->nominal_mitra ?? 0;      // ✅ kolom di bagihasils

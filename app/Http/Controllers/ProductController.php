@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ProductController extends Controller
 {
@@ -13,14 +13,10 @@ class ProductController extends Controller
     // TAMPIL DAFTAR PRODUK MILIK MITRA
     // =============================================
     public function index()
-{
-    // Kamu mengambil data menggunakan model Produk
-    $produks = Produk::where('user_id', Auth::id())->latest()->get();
-
-    // Lalu mengirimkannya ke view dengan compact('produks')
-    return view('mitra.produk.index', compact('produks'));
-}
-
+    {
+        $produks = Produk::where('user_id', Auth::id())->latest()->get();
+        return view('mitra.produk.index', compact('produks'));
+    }
 
     // =============================================
     // TAMPIL FORM TAMBAH PRODUK
@@ -34,37 +30,37 @@ class ProductController extends Controller
     // SIMPAN PRODUK BARU
     // =============================================
     public function store(Request $request)
-{
-    $request->validate([
-        'nama_produk' => 'required|string|max:255',
-        'harga'       => 'required|numeric|min:0',
-        'jumlah'      => 'required|integer|min:0',
-        'deskripsi'   => 'required|string',
-        'gambar'      => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-    ]);
+    {
+        $request->validate([
+            'nama_produk' => 'required|string|max:255',
+            'harga'       => 'required|numeric|min:0',
+            'jumlah'      => 'required|integer|min:0',
+            'deskripsi'   => 'required|string',
+            'gambar'      => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
 
-    $path = null;
-    if ($request->hasFile('gambar')) {
-        try {
-            $path = $request->file('gambar')->store('produk', 's3');
-            dd('SUKSES - Path: ' . $path);
-        } catch (\Exception $e) {
-            dd('ERROR: ' . $e->getMessage());
+        $gambarUrl   = null;
+        $gambarPublicId = null;
+
+        if ($request->hasFile('gambar')) {
+            $upload      = Cloudinary::upload($request->file('gambar')->getRealPath());
+            $gambarUrl   = $upload->getSecurePath();
+            $gambarPublicId = $upload->getPublicId();
         }
+
+        Produk::create([
+            'user_id'          => Auth::id(),
+            'nama_produk'      => $request->nama_produk,
+            'harga'            => $request->harga,
+            'jumlah'           => $request->jumlah,
+            'deskripsi'        => $request->deskripsi,
+            'gambar'           => $gambarUrl,
+            'gambar_public_id' => $gambarPublicId,
+            'status'           => 'tersedia',
+        ]);
+
+        return redirect()->route('mitra.kelola')->with('success', 'Produk berhasil ditambahkan!');
     }
-
-    Produk::create([
-        'user_id'     => Auth::id(),
-        'nama_produk' => $request->nama_produk,
-        'harga'       => $request->harga,
-        'jumlah'      => $request->jumlah,
-        'deskripsi'   => $request->deskripsi,
-        'gambar'      => $path,
-        'status'      => 'tersedia',
-    ]);
-
-    return redirect()->route('mitra.kelola')->with('success', 'Produk berhasil ditambahkan!');
-}
 
     // =============================================
     // TAMPIL DETAIL PRODUK (CUSTOMER)
@@ -99,21 +95,27 @@ class ProductController extends Controller
             'gambar'      => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $path = $produk->gambar;
+        $gambarUrl      = $produk->gambar;
+        $gambarPublicId = $produk->gambar_public_id;
+
         if ($request->hasFile('gambar')) {
-            // Hapus gambar lama
-           if ($produk->gambar) {
-  Storage::disk('s3')->delete($produk->gambar);
-}
-$path = $request->file('gambar')->store('produk', 's3');
+            // Hapus gambar lama di Cloudinary
+            if ($produk->gambar_public_id) {
+                Cloudinary::destroy($produk->gambar_public_id);
+            }
+
+            $upload         = Cloudinary::upload($request->file('gambar')->getRealPath());
+            $gambarUrl      = $upload->getSecurePath();
+            $gambarPublicId = $upload->getPublicId();
         }
 
         $produk->update([
-            'nama_produk' => $request->nama_produk,
-            'harga'       => $request->harga,
-            'jumlah'      => $request->jumlah,
-            'deskripsi'   => $request->deskripsi,
-            'gambar'      => $path,
+            'nama_produk'      => $request->nama_produk,
+            'harga'            => $request->harga,
+            'jumlah'           => $request->jumlah,
+            'deskripsi'        => $request->deskripsi,
+            'gambar'           => $gambarUrl,
+            'gambar_public_id' => $gambarPublicId,
         ]);
 
         return redirect()->route('mitra.kelola')->with('success', 'Produk berhasil diperbarui!');
@@ -126,14 +128,13 @@ $path = $request->file('gambar')->store('produk', 's3');
     {
         $produk = Produk::where('user_id', Auth::id())->findOrFail($id);
 
-        if ($produk->gambar) {
-          Storage::disk('s3')->delete($produk->gambar);
+        // Hapus gambar di Cloudinary
+        if ($produk->gambar_public_id) {
+            Cloudinary::destroy($produk->gambar_public_id);
         }
 
         $produk->delete();
 
         return redirect()->back()->with('success', 'Produk berhasil dihapus!');
     }
-
-
 }

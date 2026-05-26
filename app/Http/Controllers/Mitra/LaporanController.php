@@ -53,7 +53,7 @@ class LaporanController extends Controller
         $transaksi  = $this->getQuery($mitraId, $periode)->get();
         $totalOmzet = $transaksi->sum('total');
 
-        $pdf = Pdf::loadView('mitra.laporan.rekap_pdf', [
+        $pdf = Pdf::loadView('mitra.laporan.pdf_rekap', [
             'transaksi'  => $transaksi,
             'totalOmzet' => $totalOmzet,
             'periode'    => $periode,

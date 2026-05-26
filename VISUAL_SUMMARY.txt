@@ -1,0 +1,248 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║   🚀 RAILWAY DEPLOYMENT - BUMDES PUTRA SAMUDRA PATIMBAN                     ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ✅ YANG SUDAH SELESAI                                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  ✓ File .env diperbaiki untuk production
+    • APP_DEBUG=false (sebelumnya true - CRITICAL FIX!)
+    • APP_ENV=production
+    • LOG_LEVEL=error
+    • Database Railway credentials dikonfigurasi
+    • SESSION_DOMAIN disesuaikan
+    • GOOGLE_REDIRECT_URL disesuaikan
+
+  ✓ Dokumentasi lengkap dibuat (9 files)
+    • README_DEPLOYMENT.md - Start here!
+    • TODO_BEFORE_DEPLOY.md - Daftar yang harus dilakukan
+    • DEPLOYMENT_CHECKLIST.md - Checklist step-by-step
+    • RAILWAY_DEPLOYMENT.md - Panduan lengkap
+    • SUPABASE_SETUP.md - Setup Supabase
+    • QUICK_REFERENCE.md - Quick commands
+    • DEPLOYMENT_SUMMARY.md - Summary lengkap
+    • RAILWAY_ENV_VARIABLES.txt - Template variables
+    • VISUAL_SUMMARY.txt - File ini
+
+  ✓ Script deployment dibuat
+    • deploy.bat (Windows)
+    • deploy.sh (Linux/Mac)
+
+  ✓ File konfigurasi Railway
+    • Procfile
+    • nixpacks.toml
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ⚠️  YANG HARUS ANDA LAKUKAN SEKARANG                                         │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  🔴 CRITICAL - Wajib dilakukan sebelum deploy!
+
+  1. ISI SUPABASE KEYS
+     ┌─────────────────────────────────────────────────────────────────┐
+     │ File: .env                                                      │
+     │                                                                 │
+     │ SUPABASE_KEY=your_supabase_anon_key          ← GANTI INI!      │
+     │ SUPABASE_SERVICE_KEY=your_supabase_service_key  ← GANTI INI!   │
+     └─────────────────────────────────────────────────────────────────┘
+     
+     Cara: https://app.supabase.com → Settings → API
+     • Copy "anon public" key → SUPABASE_KEY
+     • Copy "service_role" key → SUPABASE_SERVICE_KEY
+
+  2. GENERATE S3 ACCESS KEYS
+     ┌─────────────────────────────────────────────────────────────────┐
+     │ Supabase Dashboard → Settings → Storage                        │
+     │ → Create S3 Access Key                                         │
+     │                                                                 │
+     │ Permissions: ✓ Read  ✓ Write  ✓ Delete                        │
+     └─────────────────────────────────────────────────────────────────┘
+     
+     Update .env:
+     • AWS_ACCESS_KEY_ID=[copy access key id]
+     • AWS_SECRET_ACCESS_KEY=[copy secret access key]
+
+  3. BUAT BUCKET DI SUPABASE
+     ┌─────────────────────────────────────────────────────────────────┐
+     │ Supabase Dashboard → Storage → Create bucket                   │
+     │                                                                 │
+     │ Name: produk                                                    │
+     │ Public: ✓ CENTANG INI!                                         │
+     │ Size limit: 50 MB                                              │
+     └─────────────────────────────────────────────────────────────────┘
+
+  4. TEST UPLOAD LOKAL
+     ┌─────────────────────────────────────────────────────────────────┐
+     │ $ php artisan test:supabase-upload                             │
+     │                                                                 │
+     │ Expected:                                                       │
+     │ ✅ Upload successful!                                          │
+     │ ✅ File exists in storage                                      │
+     │ ✅ Test file deleted                                           │
+     └─────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🚀 CARA DEPLOY                                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  QUICK DEPLOY (Recommended)
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ Windows:                                                        │
+  │ $ deploy.bat                                                    │
+  │                                                                 │
+  │ Linux/Mac:                                                      │
+  │ $ chmod +x deploy.sh                                           │
+  │ $ ./deploy.sh                                                  │
+  └─────────────────────────────────────────────────────────────────┘
+
+  Script akan otomatis:
+  • Check pre-deployment requirements
+  • Commit & push changes (jika ada)
+  • Deploy ke Railway
+  • Run migrations
+  • Cache configurations
+  • Generate storage link
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 📚 DOKUMENTASI                                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  BACA INI DULU:
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ 1. README_DEPLOYMENT.md      ← START HERE!                     │
+  │    Overview singkat semua yang perlu dilakukan                 │
+  │                                                                 │
+  │ 2. TODO_BEFORE_DEPLOY.md     ← PENTING!                        │
+  │    Daftar lengkap yang harus dilakukan sebelum deploy          │
+  │    • Cara mendapatkan Supabase keys                            │
+  │    • Cara membuat bucket                                       │
+  │    • Cara test upload                                          │
+  └─────────────────────────────────────────────────────────────────┘
+
+  REFERENSI:
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ 3. DEPLOYMENT_CHECKLIST.md                                     │
+  │    Checklist step-by-step deployment                           │
+  │                                                                 │
+  │ 4. RAILWAY_DEPLOYMENT.md                                       │
+  │    Panduan lengkap deployment Railway                          │
+  │                                                                 │
+  │ 5. SUPABASE_SETUP.md                                           │
+  │    Panduan lengkap setup Supabase                              │
+  │                                                                 │
+  │ 6. QUICK_REFERENCE.md                                          │
+  │    Quick reference commands                                    │
+  └─────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🎯 LANGKAH CEPAT (Total: ~40 menit)                                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  ⏱️  15 menit - Isi Variabel
+  ├─ Supabase keys
+  ├─ S3 access keys
+  └─ Buat bucket produk
+
+  ⏱️  5 menit - Test Lokal
+  └─ php artisan test:supabase-upload
+
+  ⏱️  10 menit - Deploy
+  └─ deploy.bat (atau ./deploy.sh)
+
+  ⏱️  10 menit - Test Production
+  ├─ Homepage loading
+  ├─ Login/Register
+  ├─ Upload gambar
+  └─ Checkout
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ✅ CHECKLIST CEPAT                                                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  SEBELUM DEPLOY:
+  [ ] SUPABASE_KEY sudah diisi
+  [ ] SUPABASE_SERVICE_KEY sudah diisi
+  [ ] AWS_ACCESS_KEY_ID sudah diisi
+  [ ] AWS_SECRET_ACCESS_KEY sudah diisi
+  [ ] Bucket produk sudah dibuat & public
+  [ ] Test upload lokal berhasil
+
+  DEPLOY:
+  [ ] Code sudah di-push ke Git
+  [ ] Deploy script berhasil
+  [ ] Migrations berhasil
+  [ ] Configs cached
+
+  AFTER DEPLOY:
+  [ ] Aplikasi accessible
+  [ ] Login/Register works
+  [ ] Upload gambar works
+  [ ] Payment works
+  [ ] Email works
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🐛 TROUBLESHOOTING CEPAT                                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  Error: "Access Denied" (Supabase)
+  → S3 Access Keys salah atau belum di-generate
+
+  Error: "Bucket not found"
+  → Bucket produk belum dibuat di Supabase
+
+  Error: "500 Internal Server Error"
+  → railway logs
+  → railway run php artisan config:clear
+
+  Error: "Database connection failed"
+  → Check DB_SSLMODE=require (sudah ada ✓)
+
+  Troubleshooting lengkap: Lihat RAILWAY_DEPLOYMENT.md
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 📞 SUPPORT                                                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  Railway
+  • Docs: https://docs.railway.app
+  • Discord: https://discord.gg/railway
+  • Status: https://status.railway.app
+
+  Supabase
+  • Docs: https://supabase.com/docs
+  • Discord: https://discord.supabase.com
+  • Status: https://status.supabase.com
+
+  Laravel
+  • Docs: https://laravel.com/docs
+  • Forum: https://laracasts.com/discuss
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🎉 READY TO DEPLOY!                                                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  NEXT STEP:
+  1. Buka: TODO_BEFORE_DEPLOY.md
+  2. Ikuti instruksi step-by-step
+  3. Deploy dengan: deploy.bat (Windows) atau ./deploy.sh (Linux/Mac)
+
+  Good luck! 🚀
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║   Production URL: https://www.bumdesputrasamudra.my.id                      ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝

@@ -1,0 +1,116 @@
+# ========================================
+# Railway Environment Variables
+# BUMDes Putra Samudra Patimban
+# ========================================
+#
+# Copy semua variabel di bawah ini ke Railway Dashboard
+# Settings → Variables → Raw Editor
+#
+# ⚠️ JANGAN COPY DB_* variables - Railway auto-generate!
+# ⚠️ GANTI nilai yang bertanda [ISI_DENGAN_...]
+#
+# ========================================
+
+# Application
+APP_NAME="BUMDes Putra Samudra Patimban"
+APP_ENV=production
+APP_KEY=base64:grpkdBMo9nVsNNko2xfnS5Rwu3YmGNo9HnybPz8XbqE=
+APP_DEBUG=false
+APP_URL=https://www.bumdesputrasamudra.my.id
+APP_LOCALE=en
+APP_FALLBACK_LOCALE=en
+APP_FAKER_LOCALE=en_US
+APP_MAINTENANCE_DRIVER=file
+
+# Security
+BCRYPT_ROUNDS=12
+
+# Logging
+LOG_CHANNEL=stack
+LOG_STACK=single
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=error
+
+# Session & Cache
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+SESSION_ENCRYPT=false
+SESSION_PATH=/
+SESSION_DOMAIN=.bumdesputrasamudra.my.id
+BROADCAST_CONNECTION=log
+QUEUE_CONNECTION=database
+CACHE_STORE=database
+CACHE_PREFIX=bumdes_cache
+
+# Supabase Configuration
+# ⚠️ GANTI dengan keys dari Supabase Dashboard → Settings → API
+SUPABASE_URL=https://twbvqgjedeapqszljzox.supabase.co
+SUPABASE_KEY=[ISI_DENGAN_ANON_PUBLIC_KEY]
+SUPABASE_SERVICE_KEY=[ISI_DENGAN_SERVICE_ROLE_KEY]
+
+# Supabase Storage (S3 Compatible)
+# ⚠️ GANTI dengan S3 Access Keys dari Supabase Dashboard → Settings → Storage
+FILESYSTEM_DISK=public
+AWS_ACCESS_KEY_ID=[ISI_DENGAN_S3_ACCESS_KEY_ID]
+AWS_SECRET_ACCESS_KEY=[ISI_DENGAN_S3_SECRET_ACCESS_KEY]
+AWS_DEFAULT_REGION=ap-southeast-1
+AWS_BUCKET=produk
+AWS_USE_PATH_STYLE_ENDPOINT=true
+AWS_ENDPOINT=https://twbvqgjedeapqszljzox.supabase.co/storage/v1/s3
+AWS_URL=https://twbvqgjedeapqszljzox.supabase.co/storage/v1/object/public
+
+# Email (Gmail SMTP)
+# ⚠️ MAIL_PASSWORD harus menggunakan Gmail App Password, bukan password Gmail biasa
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=465
+MAIL_USERNAME=bumdesputrasamudrapatimban@gmail.com
+MAIL_PASSWORD=knccjzwlgoefmxdk
+MAIL_ENCRYPTION=ssl
+MAIL_FROM_ADDRESS="no-reply@gmail.com"
+MAIL_FROM_NAME="${APP_NAME}"
+
+# Payment Gateway (Midtrans)
+# ⚠️ Gunakan Sandbox keys untuk testing, Production keys untuk live
+MIDTRANS_SERVER_KEY=Mid-server-upW0xGW_gRQ3ZpUHZn55oVFL
+MIDTRANS_CLIENT_KEY=Mid-client-PTpKalmIgkHo-NGM
+MIDTRANS_IS_PRODUCTION=false
+
+# Google OAuth
+# ⚠️ Pastikan redirect URL sudah ditambahkan di Google Cloud Console
+GOOGLE_CLIENT_ID=789370408848-omfkpkmq5kkiq36c3eag1rs5u14187e6.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+GOOGLE_REDIRECT_URL=https://www.bumdesputrasamudra.my.id/auth/google/callback
+
+# Vite
+VITE_APP_NAME="${APP_NAME}"
+
+# ========================================
+# CATATAN PENTING:
+# ========================================
+#
+# 1. JANGAN COPY DB_* variables
+#    Railway akan auto-generate:
+#    - DB_CONNECTION
+#    - DB_HOST
+#    - DB_PORT
+#    - DB_DATABASE
+#    - DB_USERNAME
+#    - DB_PASSWORD
+#
+# 2. Variabel yang HARUS DIGANTI:
+#    - SUPABASE_KEY
+#    - SUPABASE_SERVICE_KEY
+#    - AWS_ACCESS_KEY_ID
+#    - AWS_SECRET_ACCESS_KEY
+#
+# 3. Cara paste ke Railway:
+#    a. Copy semua text di atas (kecuali komentar #)
+#    b. Railway Dashboard → Settings → Variables
+#    c. Klik "Raw Editor"
+#    d. Paste semua variables
+#    e. Klik "Save"
+#
+# 4. Setelah save, Railway akan auto-restart aplikasi
+#
+# ========================================
