@@ -123,10 +123,12 @@ class GoogleController extends Controller
                     'url' => ['secure' => true]
                 ])
             );
-          $result = $cloudinary->uploadApi()->upload(
+   $result = $cloudinary->uploadApi()->upload(
     $request->file('sku')->getRealPath(),
     [
-        'resource_type' => 'raw', // ← ganti ini
+        'resource_type' => 'raw',
+        'type'          => 'upload',
+        'access_mode'   => 'public',
         'folder'        => 'dokumen_mitra'
     ]
 );
