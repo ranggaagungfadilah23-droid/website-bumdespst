@@ -15,7 +15,7 @@ use App\Http\Controllers\KepalaBumdes\LaporanBulananController;
 use App\Http\Controllers\KepalaBumdes\MonitoringKeuanganController;
 use App\Http\Controllers\Customer\UlasanController;
 use App\Http\Controllers\Mitra\UlasanMitraController;
-
+use Illuminate\Support\Facades\Artisan;
 // =============================================================
 // --- 1. PUBLIC AREA ---
 // =============================================================
@@ -153,7 +153,7 @@ Route::get('/laporan/pdf', [AdminController::class, 'laporanPdf'])->name('lapora
 Route::resource('produk', ProductController::class)
     ->names('mitra.produk')
     ->except(['show']);
-    
+
             Route::resource('jasa', JasaController::class)->names('mitra.jasa');
 
             // Laporan
@@ -226,6 +226,11 @@ Route::prefix('cart')->name('cart.')->group(function () {
         Route::get('/ulasan', [UlasanController::class, 'index'])->name('ulasan.index');
     });
 
+});
+
+Route::get('/storage-link', function () {
+    Artisan::call('storage:link');
+    return 'Done: ' . Artisan::output();
 });
 
 require base_path('routes/auth.php');
