@@ -256,8 +256,9 @@
         setTimeout(() => { modal.classList.add('hidden'); document.querySelector('textarea[name="pesan_penolakan"]').value = ''; }, 300);
     }
 
-    function openPdfModal(url) {
-    document.getElementById('pdfFrame').src = url;
+  function openPdfModal(url) {
+    const viewerUrl = 'https://docs.google.com/viewer?embedded=true&url=' + encodeURIComponent(url);
+    document.getElementById('pdfFrame').src = viewerUrl;
     document.getElementById('pdfDownloadBtn').href = url;
     const modal = document.getElementById('pdfModal');
     modal.classList.remove('hidden');
