@@ -34,9 +34,10 @@
                                         <div class="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border">
                     @if($item->gambar)
                         {{-- Gunakan asset() untuk mengambil gambar dari local storage --}}
-                        <img src="{{ asset('storage/' . $item->gambar) }}"
-                             alt="{{ $item->nama_produk }}"
-                             class="w-full h-full object-cover">
+                    <img src="{{ str_starts_with($item->gambar, 'http') ? $item->gambar : asset('storage/' . $item->gambar) }}"
+     alt="{{ $item->nama_produk }}"
+     class="w-full h-full object-cover">
+
                     @else
                         <div class="w-full h-full flex items-center justify-center text-slate-300">
                             <i class="fas fa-image"></i>
