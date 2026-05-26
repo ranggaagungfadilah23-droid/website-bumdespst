@@ -233,6 +233,13 @@ Route::get('/storage-link', function () {
     return 'Done: ' . Artisan::output();
 });
 
+Route::get('/clear-all', function () {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('config:cache');
+    return 'Done: ' . now();
+});
+
 require base_path('routes/auth.php');
 
 Route::get('/force-logout', function () {
