@@ -107,20 +107,22 @@
                         @endif
                     </td>
 
-                  {{-- DOKUMEN --}}
+{{-- DOKUMEN --}}
 <td class="tbl-td">
     <div class="flex gap-1.5 flex-wrap">
-      @if($item->mitra && $item->mitra->sku)
-<a href="https://docs.google.com/viewer?url={{ urlencode($item->mitra->sku) }}"
-   target="_blank"
-   class="inline-flex items-center gap-1 bg-sky-500 hover:bg-sky-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition">
-    <i class="fas fa-file-signature text-[9px]"></i> SKU
-</a>
+        @if($item->mitra && $item->mitra->sku)
+        <button type="button"
+            onclick="openPdfModal('{{ $item->mitra->sku }}')"
+            class="inline-flex items-center gap-1 bg-sky-500 hover:bg-sky-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition">
+            <i class="fas fa-file-signature text-[9px]"></i> SKU
+        </button>
         @else
         <span class="text-slate-300 text-[11px] italic">Tidak ada</span>
         @endif
     </div>
 </td>
+
+
 
                     {{-- OPSI --}}
                     <td class="tbl-td text-center">
@@ -204,6 +206,28 @@
     </div>
 </div>
 
+{{-- MODAL PDF VIEWER --}}
+<div id="pdfModal" class="fixed inset-0 z-50 hidden bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl">
+        <div class="flex justify-between items-center p-4 border-b border-slate-100">
+            <h3 class="font-bold text-slate-800">Preview Dokumen SKU</h3>
+            <div class="flex gap-2">
+                <a id="pdfDownloadBtn" href="#" target="_blank"
+                   class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500 text-white hover:bg-sky-600 transition">
+                    <i class="fas fa-download mr-1"></i> Download
+                </a>
+                <button onclick="closePdfModal()"
+                        class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition">
+                    <i class="fas fa-times text-slate-600"></i>
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 p-2 overflow-hidden">
+            <iframe id="pdfFrame" src="" class="w-full h-full rounded-xl border border-slate-100"></iframe>
+        </div>
+    </div>
+</div>
+
 <script>
     function openApproveModal(id, name) {
         document.getElementById('approveNameDisplay').innerText = name;
@@ -231,5 +255,16 @@
         document.getElementById('rejectModalContent').classList.replace('scale-100','scale-95');
         setTimeout(() => { modal.classList.add('hidden'); document.querySelector('textarea[name="pesan_penolakan"]').value = ''; }, 300);
     }
+
+    function openPdfModal(url) {
+    document.getElementById('pdfFrame').src = url;
+    document.getElementById('pdfDownloadBtn').href = url;
+    const modal = document.getElementById('pdfModal');
+    modal.classList.remove('hidden');
+}
+function closePdfModal() {
+    document.getElementById('pdfFrame').src = '';
+    document.getElementById('pdfModal').classList.add('hidden');
+}
 </script>
 @endsection
