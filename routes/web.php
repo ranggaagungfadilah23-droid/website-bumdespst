@@ -149,8 +149,11 @@ Route::get('/laporan/pdf', [AdminController::class, 'laporanPdf'])->name('lapora
             Route::patch('/pesanan/{id}/status', [PesananController::class, 'updateStatus'])->name('mitra.pesanan.update-status');
             Route::post('/pesanan/{id}/konfirmasi', [PesananController::class, 'konfirmasiLunas'])->name('mitra.pesanan.konfirmasi-lunas');
             Route::get('/pesanan/{id}/cetak', [PesananController::class, 'cetakInvoice'])->name('mitra.pesanan.cetak-invoice');
-
-            Route::resource('produk', ProductController::class)->names('mitra.produk');
+// SESUDAH
+Route::resource('produk', ProductController::class)
+    ->names('mitra.produk')
+    ->except(['show']);
+    
             Route::resource('jasa', JasaController::class)->names('mitra.jasa');
 
             // Laporan
