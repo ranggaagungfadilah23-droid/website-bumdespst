@@ -102,6 +102,9 @@
     .note { color: #fbbc05; font-size: 10px; margin-top: 1px; }
     .syarat-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; justify-content: center; }
     .syarat-row label { color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+    .file-row * { cursor: pointer; }
+.file-name { cursor: pointer; user-select: none; }
 </style>
 
 <h1 class="reg-title">Pendaftaran Mitra BUMDes</h1>
@@ -208,9 +211,9 @@
             <label class="lbl">Dokumen Pendukung</label>
             <div class="upload-area">
                 <span class="upload-btn-lbl">📎 Upload Dokumen</span>
-                <label class="file-row" for="sku-upload">
+              <label class="file-row" for="sku-upload" style="cursor:pointer; user-select:none;">
                     <i class="fas fa-folder-open"></i>
-                    <span class="file-name" id="sku-text">Surat Keterangan Usaha</span>
+                   <span class="file-name" id="sku-text" style="cursor:pointer; user-select:none;">Surat Keterangan Usaha</span>
                     <input type="file" name="sku" id="sku-upload" style="display:none"
                            accept=".jpg,.png,.pdf"
                            onchange="updateFileName(this,'sku-text')">
