@@ -15,6 +15,7 @@
         "laravel/tinker": "^2.10.1",
         "league/flysystem-aws-s3-v3": "^3.34",
         "midtrans/midtrans-php": "^2.6",
+        "resend/resend-laravel": "^1.4",
         "spatie/laravel-activitylog": "^4.12"
     },
     "require-dev": {

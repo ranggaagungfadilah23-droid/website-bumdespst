@@ -1,7 +1,7 @@
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
         <div class="brand-icon"><i class="fas fa-store"></i></div>
-        <h2>PasarDesa</h2>
+        <h2>BUMDes Putra Samudra Patimban</h2>
         <span>BUMDes Marketplace</span>
     </div>
     <nav class="sidebar-nav">
