@@ -11,15 +11,16 @@ class Jasa extends Model
 
     protected $table = 'jasas';
 
-    protected $fillable = [
-        'user_id',
-        'nama_jasa',
-        'harga',
-        'satuan',
-        'deskripsi',
-        'gambar',
-        'status',
-    ];
+  protected $fillable = [
+    'user_id',
+    'nama_jasa',
+    'harga',
+    'satuan',
+    'deskripsi',
+    'gambar',
+    'gambar_public_id', // ← tambahkan
+    'status',
+];
 
     public function user()
     {

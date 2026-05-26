@@ -6,49 +6,50 @@ use App\Models\Jasa;
 use App\Models\Produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Cloudinary\Cloudinary;
+use Cloudinary\Configuration\Configuration;
 
 class JasaController extends Controller
 {
-    // 1. Untuk Halaman Kelola Jasa (Mitra)
+    private function getCloudinary()
+    {
+        return new Cloudinary(
+            Configuration::instance([
+                'cloud' => [
+                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                    'api_key'    => env('CLOUDINARY_API_KEY'),
+                    'api_secret' => env('CLOUDINARY_API_SECRET'),
+                ],
+                'url' => ['secure' => true]
+            ])
+        );
+    }
+
     public function index()
     {
         $jasas = Jasa::where('user_id', Auth::id())->latest()->get();
         return view('mitra.jasa.index', compact('jasas'));
     }
 
-    // 2. Untuk Halaman Publik (Landing Page)
     public function landingPage()
     {
-
-
-
-        $jasas = Jasa::latest()->take(3)->get();
+        $jasas   = Jasa::latest()->take(3)->get();
         $produks = Produk::latest()->take(3)->get();
-
         return view('index', compact('jasas', 'produks'));
     }
 
-    // 3. Dashboard Customer
     public function dashboard()
     {
-        $jasas = Jasa::all();
+        $jasas   = Jasa::all();
         $produks = Produk::all();
-
         return view('customer.dashboard', compact('jasas', 'produks'));
     }
 
-    // =============================================
-    // TAMPIL FORM TAMBAH JASA
-    // =============================================
     public function create()
     {
         return view('mitra.jasa.create');
     }
 
-    // =============================================
-    // SIMPAN JASA BARU
-    // =============================================
     public function store(Request $request)
     {
         $request->validate([
@@ -59,19 +60,25 @@ class JasaController extends Controller
             'gambar'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $path = null;
+        $gambarUrl      = null;
+        $gambarPublicId = null;
+
         if ($request->hasFile('gambar')) {
-            $path = $request->file('gambar')->store('jasa', 'public');
+            $cloudinary     = $this->getCloudinary();
+            $result         = $cloudinary->uploadApi()->upload($request->file('gambar')->getRealPath());
+            $gambarUrl      = $result['secure_url'];
+            $gambarPublicId = $result['public_id'];
         }
 
         Jasa::create([
-            'user_id'   => Auth::id(),
-            'nama_jasa' => $request->nama_jasa,
-            'harga'     => $request->harga,
-            'satuan'    => $request->satuan,
-            'deskripsi' => $request->deskripsi,
-            'gambar'    => $path,
-            'status'    => 'aktif',
+            'user_id'          => Auth::id(),
+            'nama_jasa'        => $request->nama_jasa,
+            'harga'            => $request->harga,
+            'satuan'           => $request->satuan,
+            'deskripsi'        => $request->deskripsi,
+            'gambar'           => $gambarUrl,
+            'gambar_public_id' => $gambarPublicId,
+            'status'           => 'aktif',
         ]);
 
         return redirect()->route('mitra.kelola')->with('success', 'Layanan jasa berhasil ditambahkan!');
@@ -101,20 +108,28 @@ class JasaController extends Controller
             'gambar'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $path = $jasa->gambar;
+        $gambarUrl      = $jasa->gambar;
+        $gambarPublicId = $jasa->gambar_public_id;
+
         if ($request->hasFile('gambar')) {
-            if ($jasa->gambar) {
-                Storage::disk('public')->delete($jasa->gambar);
+            $cloudinary = $this->getCloudinary();
+
+            if ($jasa->gambar_public_id) {
+                $cloudinary->uploadApi()->destroy($jasa->gambar_public_id);
             }
-            $path = $request->file('gambar')->store('jasa', 'public');
+
+            $result         = $cloudinary->uploadApi()->upload($request->file('gambar')->getRealPath());
+            $gambarUrl      = $result['secure_url'];
+            $gambarPublicId = $result['public_id'];
         }
 
         $jasa->update([
-            'nama_jasa' => $request->nama_jasa,
-            'harga'     => $request->harga,
-            'satuan'    => $request->satuan,
-            'deskripsi' => $request->deskripsi,
-            'gambar'    => $path,
+            'nama_jasa'        => $request->nama_jasa,
+            'harga'            => $request->harga,
+            'satuan'           => $request->satuan,
+            'deskripsi'        => $request->deskripsi,
+            'gambar'           => $gambarUrl,
+            'gambar_public_id' => $gambarPublicId,
         ]);
 
         return redirect()->route('mitra.kelola')->with('success', 'Layanan jasa berhasil diperbarui!');
@@ -124,8 +139,9 @@ class JasaController extends Controller
     {
         $jasa = Jasa::where('user_id', Auth::id())->findOrFail($id);
 
-        if ($jasa->gambar) {
-            Storage::disk('public')->delete($jasa->gambar);
+        if ($jasa->gambar_public_id) {
+            $cloudinary = $this->getCloudinary();
+            $cloudinary->uploadApi()->destroy($jasa->gambar_public_id);
         }
 
         $jasa->delete();
