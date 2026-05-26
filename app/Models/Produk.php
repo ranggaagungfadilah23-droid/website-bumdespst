@@ -13,16 +13,16 @@ class Produk extends Model
     protected $table = 'produks';
 
     // Kolom yang boleh diisi lewat form
-    protected $fillable = [
-        'user_id',
-        'nama_produk',
-        'harga',
-        'jumlah',
-        'deskripsi',
-        'gambar',
-        'status'
-
-    ];
+  protected $fillable = [
+    'user_id',
+    'nama_produk',
+    'harga',
+    'jumlah',
+    'deskripsi',
+    'gambar',
+    'gambar_public_id', // ← tambahkan ini
+    'status'
+];
 
     // Relasi balik ke User (Pemilik Produk)
     public function user()
