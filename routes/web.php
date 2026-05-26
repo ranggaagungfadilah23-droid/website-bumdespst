@@ -16,6 +16,7 @@ use App\Http\Controllers\KepalaBumdes\MonitoringKeuanganController;
 use App\Http\Controllers\Customer\UlasanController;
 use App\Http\Controllers\Mitra\UlasanMitraController;
 use Illuminate\Support\Facades\Artisan;
+use App\Http\Controllers\MidtransWebhookController;
 // =============================================================
 // --- 1. PUBLIC AREA ---
 // =============================================================
@@ -25,8 +26,7 @@ Route::get('/verifikasi/surat/{id}', [SuratController::class, 'verifikasi'])->na
 Route::get('/panduan', fn() => view('auth.panduan-pendaftaran'))->name('panduan');
 
 // Midtrans Webhook — bypass CSRF
-Route::post('/midtrans/callback', [CheckoutController::class, 'callback'])
-    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+Route::post('/midtrans/callback', [MidtransWebhookController::class, 'handle']);
 
 // API cek status pembayaran (untuk polling di frontend)
 Route::get('/api/check-payment/{invoice}', function ($invoice) {
