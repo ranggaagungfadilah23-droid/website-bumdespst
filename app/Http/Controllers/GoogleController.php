@@ -123,10 +123,13 @@ class GoogleController extends Controller
                     'url' => ['secure' => true]
                 ])
             );
-            $result = $cloudinary->uploadApi()->upload(
-                $request->file('sku')->getRealPath(),
-                ['resource_type' => 'auto'] // ← penting agar PDF juga bisa diupload
-            );
+          $result = $cloudinary->uploadApi()->upload(
+    $request->file('sku')->getRealPath(),
+    [
+        'resource_type' => 'raw', // ← ganti ini
+        'folder'        => 'dokumen_mitra'
+    ]
+);
             $skuUrl = $result['secure_url'];
         }
 
