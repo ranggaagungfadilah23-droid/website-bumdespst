@@ -1,8 +1,11 @@
 @php
-    $logoPath   = public_path('asset/img/logoBumdes.png');
-    $logoBase64 = file_exists($logoPath)
-        ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
-        : '';
+    $logoBase64 = '';
+    if (extension_loaded('gd')) {
+        $logoPath = public_path('asset/img/logoBumdes.png');
+        if (file_exists($logoPath)) {
+            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+        }
+    }
 @endphp
 
 <div class="kop-surat">

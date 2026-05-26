@@ -81,10 +81,12 @@ class KepalaBumdesController extends Controller
             $qrBase64 = base64_encode($result->getString());
 
             $pdf = Pdf::loadView('pdf.sertifikat', [
-                'user'    => $user,
-                'qrCode'  => $qrBase64,
-                'tanggal' => now()->translatedFormat('d F Y'),
-            ]);
+    'user'    => $user,
+    'qrCode'  => $qrBase64,
+    'tanggal' => now()->translatedFormat('d F Y'),
+    'logo'    => extension_loaded('gd') ? public_path('asset/img/logoBumdes.png') : null,
+    'noSurat' => $noSurat ?? null,
+]);
 
             $pdfContent = $pdf->output();
 
