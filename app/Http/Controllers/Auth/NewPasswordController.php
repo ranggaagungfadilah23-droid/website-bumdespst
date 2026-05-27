@@ -38,29 +38,38 @@ class NewPasswordController extends Controller
     /**
      * Proses reset password.
      */
-    public function store(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'token'    => ['required'],
-            'email'    => ['required', 'email'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+   public function store(Request $request): RedirectResponse
+{
+    $request->validate([
+        'token'    => ['required'],
+        'email'    => ['required', 'email'],
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+    ]);
 
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user) use ($request) {
-                $user->forceFill([
-                    'password'       => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
-
-                event(new PasswordReset($user));
-            }
-        );
-
-        return $status == Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('status', __($status))
-            : back()->withInput($request->only('email'))
-                ->withErrors(['email' => __($status)]);
+    // ✅ Cek apakah password baru sama dengan password lama
+    $user = \App\Models\User::where('email', $request->email)->first();
+    
+    if ($user && Hash::check($request->password, $user->password)) {
+        return back()
+            ->withInput($request->only('email'))
+            ->withErrors(['password' => 'Kata sandi baru tidak boleh sama dengan kata sandi sebelumnya.']);
     }
+
+    $status = Password::reset(
+        $request->only('email', 'password', 'password_confirmation', 'token'),
+        function (User $user) use ($request) {
+            $user->forceFill([
+                'password'       => Hash::make($request->password),
+                'remember_token' => Str::random(60),
+            ])->save();
+
+            event(new PasswordReset($user));
+        }
+    );
+
+    return $status == Password::PASSWORD_RESET
+        ? redirect()->route('login')->with('status', __($status))
+        : back()->withInput($request->only('email'))
+            ->withErrors(['email' => __($status)]);
+}
 }
