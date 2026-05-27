@@ -16,7 +16,7 @@ use App\Http\Controllers\KepalaBumdes\MonitoringKeuanganController;
 use App\Http\Controllers\Customer\UlasanController;
 use App\Http\Controllers\Mitra\UlasanMitraController;
 use Illuminate\Support\Facades\Artisan;
-use App\Http\Controllers\MidtransWebhookController;
+
 // =============================================================
 // --- 1. PUBLIC AREA ---
 // =============================================================
@@ -25,8 +25,8 @@ Route::get('/produk', [ProductController::class, 'index'])->name('produk.index')
 Route::get('/verifikasi/surat/{id}', [SuratController::class, 'verifikasi'])->name('verifikasi.surat');
 Route::get('/panduan', fn() => view('auth.panduan-pendaftaran'))->name('panduan');
 
-// Midtrans Webhook — bypass CSRF
-Route::post('/midtrans/callback', [MidtransWebhookController::class, 'handle']);
+Route::post('/midtrans/callback', [CheckoutController::class, 'callback']);
+Route::post('/midtrans/webhook',  [CheckoutController::class, 'callback']);
 
 // API cek status pembayaran (untuk polling di frontend)
 Route::get('/api/check-payment/{invoice}', function ($invoice) {
@@ -208,6 +208,11 @@ Route::prefix('cart')->name('cart.')->group(function () {
         // Buy Now
         Route::get('/checkout/buynow', [CheckoutController::class, 'buyNowRedirect'])->name('checkout.buynow');
         Route::get('/checkout/buynow/confirm', [CheckoutController::class, 'buyNowConfirm'])->name('checkout.buynow.confirm');
+
+        Route::get('/checkout/finish', function() {
+    return redirect()->route('customer.pesanan')
+        ->with('success', 'Pembayaran berhasil!');
+})->name('checkout.finish');
 
         // Invoice
         Route::get('/checkout/invoice/{invoice}', [CheckoutController::class, 'invoice'])->name('invoice');

@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Produk;
 use App\Models\Transaksi;
+use App\Models\Pendapatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -251,6 +252,18 @@ class CheckoutController extends Controller
                         'status_pengiriman' => 'Diproses',
                         'tanggal_bayar'     => now(),
                     ]);
+
+                    // ✅ Catat pendapatan mitra setelah settlement dikonfirmasi
+                    $sudahAda = Pendapatan::where('transaksi_id', $transaksi->id)->exists();
+                    if (!$sudahAda) {
+                        Pendapatan::create([
+                            'transaksi_id'   => $transaksi->id,
+                            'mitra_id'       => $transaksi->mitra_id,
+                            'total_diterima' => $transaksi->total,
+                            'keterangan'     => 'Bayar Sekarang (Midtrans) - Invoice: ' . $transaksi->invoice_number,
+                            'tanggal_masuk'  => now(),
+                        ]);
+                    }
 
                     // ✅ Hapus cart bayar_sekarang setelah settlement dikonfirmasi
                     // Cart PO sudah dihapus di process(), jadi ini hanya untuk bayar_sekarang
