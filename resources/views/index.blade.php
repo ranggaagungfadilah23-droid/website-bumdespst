@@ -69,7 +69,7 @@
     <section class="hero" id="beranda">
         <img
             class="hero-img"
-            src="{{ asset('asset/img/berandabg.jpg') }}"
+        src="https://res.cloudinary.com/duxq5a40j/image/upload/v1779850645/berandabg_d8l6rj.jpg"
             alt="Pantai Patimban"
         >
         <div class="hero-overlay"></div>
@@ -161,7 +161,7 @@
         <div class="about-visual reveal reveal-delay-2">
             <div class="about-deco"></div>
             <div class="about-img-wrap">
-                <img src="{{ asset('asset/img/berandabg.jpg') }}" alt="Patimban">
+                src="https://res.cloudinary.com/duxq5a40j/image/upload/v1779850645/berandabg_d8l6rj.jpg"
             </div>
             <div class="about-badge">
                 <strong>10+</strong>

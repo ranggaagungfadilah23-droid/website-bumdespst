@@ -25,7 +25,7 @@
         }
 
         body {
-            background-image: url("{{ asset('asset/img/berandabg.jpg') }}");
+           background-image: url("https://res.cloudinary.com/duxq5a40j/image/upload/v1779850645/berandabg_d8l6rj.jpg");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
