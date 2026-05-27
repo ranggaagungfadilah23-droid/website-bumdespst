@@ -242,7 +242,7 @@
             <div class="produk-card reveal">
                 <div class="produk-img-wrap">
                     <img
-                        src="{{ $jasa->gambar ? asset('storage/'.$jasa->gambar) : asset('asset/img/default-product.jpg') }}"
+                     src="{{ $jasa->gambar ? $jasa->gambar : asset('asset/img/default-product.jpg') }}"
                         alt="{{ $jasa->nama_jasa }}"
                         loading="lazy"
                     >
@@ -269,7 +269,7 @@
             <div class="produk-card reveal">
                 <div class="produk-img-wrap">
                     <img
-                        src="{{ $produk->gambar ? asset('storage/'.$produk->gambar) : asset('asset/img/default-product.jpg') }}"
+                       src="{{ $produk->gambar ? $produk->gambar : asset('asset/img/default-product.jpg') }}"
                         alt="{{ $produk->nama_produk }}"
                         loading="lazy"
                     >
