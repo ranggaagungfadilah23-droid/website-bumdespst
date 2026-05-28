@@ -17,6 +17,7 @@ use App\Http\Controllers\Customer\UlasanController;
 use App\Http\Controllers\Mitra\UlasanMitraController;
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+
 // =============================================================
 // --- 1. PUBLIC AREA ---
 // =============================================================
@@ -40,9 +41,16 @@ Route::get('/api/check-payment/{invoice}', function ($invoice) {
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
+// --- DEBUG LOG (HAPUS SETELAH SELESAI DEBUG) ---
+Route::get('/debug-log', function () {
+    $path = storage_path('logs/laravel.log');
+    if (!file_exists($path)) return 'Log kosong';
+    $lines = array_slice(explode("\n", file_get_contents($path)), -80);
+    return '<pre style="font-size:12px">' . implode("\n", $lines) . '</pre>';
+});
 
 // =============================================================
-// --- 2. GUEST AREA (SUDAH DIPERBAIKI SINTAKS ROUTE::VIEW) ---
+// --- 2. GUEST AREA ---
 // =============================================================
 Route::middleware('guest')->group(function () {
     Route::view('/register/mitra', 'auth.register-mitra')->name('register.mitra');
@@ -65,7 +73,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return redirect()->route('customer.dashboard');
     })->name('dashboard');
 
-       Route::post('/switch-account/{userId}', [AuthenticatedSessionController::class, 'switchAccount'])
+    Route::post('/switch-account/{userId}', [AuthenticatedSessionController::class, 'switchAccount'])
         ->name('switch.account');
 
     Route::get('/cari', [PencarianController::class, 'index'])->name('global.search');
@@ -104,8 +112,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
         Route::post('/laporan/kirim', [AdminController::class, 'kirimLaporan'])->name('laporan.kirim');
-      // ✅ BENAR
-Route::get('/laporan/pdf', [AdminController::class, 'laporanPdf'])->name('laporan.pdf');
+        Route::get('/laporan/pdf', [AdminController::class, 'laporanPdf'])->name('laporan.pdf');
         Route::get('/histori', [AdminController::class, 'histori'])->name('histori');
     });
 
@@ -122,7 +129,6 @@ Route::get('/laporan/pdf', [AdminController::class, 'laporanPdf'])->name('lapora
         Route::get('/monitoring-keuangan', [App\Http\Controllers\KepalaBumdes\InputKeuanganController::class, 'index'])->name('monitoring-keuangan');
         Route::get('/monitoring-keuangan/export', [App\Http\Controllers\KepalaBumdes\InputKeuanganController::class, 'export'])->name('monitoring-keuangan.export');
 
-        // Rute Operasional Input Keuangan (Terintegrasi Penuh)
         Route::post('/simpan-saldo-awal', [App\Http\Controllers\KepalaBumdes\InputKeuanganController::class, 'simpanSaldoAwal'])->name('simpan-saldo-awal');
         Route::delete('/hapus-saldo-awal/{id}', [App\Http\Controllers\KepalaBumdes\InputKeuanganController::class, 'hapusSaldoAwal'])->name('hapus-saldo-awal');
         Route::post('/simpan-pengeluaran', [App\Http\Controllers\KepalaBumdes\InputKeuanganController::class, 'simpanPengeluaran'])->name('simpan-pengeluaran');
@@ -147,40 +153,36 @@ Route::get('/laporan/pdf', [AdminController::class, 'laporanPdf'])->name('lapora
                 }
             })->name('mitra.kelola');
 
-            // Pesanan Mitra
             Route::get('/pesanan', [PesananController::class, 'index'])->name('mitra.pesanan.index');
             Route::patch('/pesanan/{id}/status', [PesananController::class, 'updateStatus'])->name('mitra.pesanan.update-status');
             Route::post('/pesanan/{id}/konfirmasi', [PesananController::class, 'konfirmasiLunas'])->name('mitra.pesanan.konfirmasi-lunas');
             Route::get('/pesanan/{id}/cetak', [PesananController::class, 'cetakInvoice'])->name('mitra.pesanan.cetak-invoice');
-// SESUDAH
-Route::resource('produk', ProductController::class)
-    ->names('mitra.produk')
-    ->except(['show']);
+
+            Route::resource('produk', ProductController::class)
+                ->names('mitra.produk')
+                ->except(['show']);
 
             Route::resource('jasa', JasaController::class)->names('mitra.jasa');
 
-            // Laporan
             Route::prefix('laporan')->name('mitra.laporan.')->group(function () {
                 Route::get('/', [LaporanController::class, 'index'])->name('index');
                 Route::get('/pdf', [LaporanController::class, 'pdf'])->name('pdf');
                 Route::post('/kirim', [LaporanController::class, 'kirimKeAdmin'])->name('kirim');
             });
 
-            // Pendapatan + Ulasan Mitra
             Route::prefix('pendapatan')->name('mitra.pendapatan.')->group(function () {
                 Route::get('/', [PendapatanController::class, 'index'])->name('index');
                 Route::get('/laporan', [PendapatanController::class, 'laporan'])->name('laporan');
                 Route::get('/laporan/pdf_rekap', [PendapatanController::class, 'laporanPdf'])->name('laporan.pdf_rekap');
                 Route::post('/kirim', [BagihasilController::class, 'store'])->name('kirim');
 
-                // Ulasan masuk ke mitra
                 Route::get('/ulasan', [UlasanMitraController::class, 'index'])->name('ulasan.index');
                 Route::post('/ulasan/{ulasan}/balas', [UlasanMitraController::class, 'balas'])->name('ulasan.balas');
             });
         });
     });
 
-    // --- CUSTOMER (SUDAH DIPERBAIKI PARSEERROR KURUNG) ---
+    // --- CUSTOMER ---
     Route::middleware(['role:customer'])->prefix('customer')->name('customer.')->group(function () {
         Route::get('/dashboard', function () {
             return view('customer.dashboard', [
@@ -189,38 +191,29 @@ Route::resource('produk', ProductController::class)
             ]);
         })->name('dashboard');
 
-        // Cart
-     // Cart
-// Cari bagian ini di dalam grup customer
-Route::prefix('cart')->name('cart.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Customer\CartController::class, 'index'])->name('index');
-    Route::post('/add', [App\Http\Controllers\Customer\CartController::class, 'add'])->name('add');
-    Route::post('/add-jasa/{id}', [App\Http\Controllers\Customer\CartController::class, 'addJasa'])->name('add.jasa');
-    Route::post('/clear', [App\Http\Controllers\Customer\CartController::class, 'clear'])->name('clear');
-});
+        Route::prefix('cart')->name('cart.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Customer\CartController::class, 'index'])->name('index');
+            Route::post('/add', [App\Http\Controllers\Customer\CartController::class, 'add'])->name('add');
+            Route::post('/add-jasa/{id}', [App\Http\Controllers\Customer\CartController::class, 'addJasa'])->name('add.jasa');
+            Route::post('/clear', [App\Http\Controllers\Customer\CartController::class, 'clear'])->name('clear');
+        });
 
-        // Detail Produk & Jasa
         Route::get('/produk/{id}', [ProductController::class, 'show'])->name('produk.show');
         Route::get('/jasa/{id}', [JasaController::class, 'show'])->name('jasa.show');
 
-        // Checkout
         Route::match(['get', 'post'], '/checkout/confirm', [CheckoutController::class, 'confirm'])->name('checkout.confirm');
         Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
         Route::get('/checkout/payment/{invoice}', [CheckoutController::class, 'payment'])->name('checkout.payment');
 
-        // Buy Now
         Route::get('/checkout/buynow', [CheckoutController::class, 'buyNowRedirect'])->name('checkout.buynow');
         Route::get('/checkout/buynow/confirm', [CheckoutController::class, 'buyNowConfirm'])->name('checkout.buynow.confirm');
 
-        Route::get('/checkout/finish', function() {
-    return redirect()->route('customer.pesanan')
-        ->with('success', 'Pembayaran berhasil!');
-})->name('checkout.finish');
+        Route::get('/checkout/finish', function () {
+            return redirect()->route('customer.pesanan')->with('success', 'Pembayaran berhasil!');
+        })->name('checkout.finish');
 
-        // Invoice
         Route::get('/checkout/invoice/{invoice}', [CheckoutController::class, 'invoice'])->name('invoice');
 
-        // Pesanan Customer
         Route::get('/pesanan', [CustomerPesananController::class, 'index'])->name('pesanan');
         Route::get('/pesanan/pending', [CustomerPesananController::class, 'pending'])->name('pesanan.pending');
         Route::get('/pesanan/dikemas', [CustomerPesananController::class, 'dikemas'])->name('pesanan.dikemas');
@@ -229,7 +222,6 @@ Route::prefix('cart')->name('cart.')->group(function () {
         Route::post('/pesanan/{invoice}/konfirmasi-diterima', [CustomerPesananController::class, 'konfirmasiDiterima'])
             ->name('pesanan.konfirmasi-diterima');
 
-        // Ulasan Customer
         Route::post('/ulasan', [UlasanController::class, 'store'])->name('ulasan.store');
         Route::get('/ulasan', [UlasanController::class, 'index'])->name('ulasan.index');
     });
