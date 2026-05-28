@@ -10,22 +10,25 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-   ->withMiddleware(function (Middleware $middleware) {
-   
-    $middleware->trustProxies(at: '*');
+    ->withMiddleware(function (Middleware $middleware) {
 
-    $middleware->alias([
-        'role'        => \App\Http\Middleware\RoleMiddleware::class,
-        'mitra_check' => \App\Http\Middleware\CheckMitraStatus::class,
-        'guest'       => \App\Http\Middleware\RedirectIfAuthenticated::class,
-        'auth'        => \App\Http\Middleware\Authenticate::class,
-    ]);
+        // ← Tambahkan baris ini
+        $middleware->prepend(\App\Http\Middleware\RoleBasedSession::class);
 
-    $middleware->validateCsrfTokens(except: [
-        'midtrans/callback',
-        'logout',
-    ]);
-})
+        $middleware->trustProxies(at: '*');
+
+        $middleware->alias([
+            'role'        => \App\Http\Middleware\RoleMiddleware::class,
+            'mitra_check' => \App\Http\Middleware\CheckMitraStatus::class,
+            'guest'       => \App\Http\Middleware\RedirectIfAuthenticated::class,
+            'auth'        => \App\Http\Middleware\Authenticate::class,
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'midtrans/callback',
+            'logout',
+        ]);
+    })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
