@@ -4,7 +4,7 @@ namespace App\Notifications;
 
 use Illuminate\Notifications\Notification;
 
-class StatusPesananNotification extends Notification
+class StatusPesananUpdateNotification extends Notification
 {
     public function __construct(
         public string $invoiceNumber,
@@ -22,7 +22,6 @@ class StatusPesananNotification extends Notification
             'Diproses' => 'sedang diproses oleh mitra.',
             'Dikemas'  => 'sedang dikemas oleh mitra.',
             'Dikirim'  => 'sudah dikirim! Silakan cek pesanan Anda.',
-            'Diterima' => 'telah dikonfirmasi diterima.',
             'Selesai'  => 'telah selesai. Terima kasih sudah berbelanja!',
             default    => "statusnya diperbarui menjadi: {$this->statusBaru}.",
         };

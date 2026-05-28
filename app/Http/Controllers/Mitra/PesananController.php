@@ -6,15 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\{Transaksi, Pendapatan, Mitra};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, DB, Log};
-use App\Notifications\StatusPesananNotification; // ✅ IMPORT NOTIFIKASI
+use App\Notifications\StatusPesananNotification;
 
 class PesananController extends Controller
 {
-    /**
-     * Flow Status Produk:
-     * Bayar Sekarang: menunggu → Diproses → Dikemas → Dikirim → Diterima → Selesai
-     * PO: menunggu → Diproses → Dikemas → Dikirim → [Konfirmasi Lunas] → Diterima → Selesai
-     */
     const FLOW_MAP_PRODUK = [
         'menunggu' => 'Diproses',
         'Diproses' => 'Dikemas',
@@ -23,11 +18,6 @@ class PesananController extends Controller
         'Diterima' => 'Selesai',
     ];
 
-    /**
-     * Flow Status Jasa:
-     * Bayar Sekarang: menunggu → Diproses → Selesai
-     * PO: menunggu → Diproses → [Konfirmasi Lunas] → Selesai
-     */
     const FLOW_MAP_JASA = [
         'menunggu' => 'Diproses',
         'Diproses' => 'Selesai',
@@ -41,7 +31,6 @@ class PesananController extends Controller
         $query = Transaksi::where('mitra_id', $mitra->user_id)
             ->with(['customer', 'produk', 'jasa']);
 
-        // Search by invoice atau nama customer
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -50,7 +39,6 @@ class PesananController extends Controller
             });
         }
 
-        // Filter by status pengiriman
         if ($request->filled('status')) {
             if ($request->status === 'menunggu') {
                 $query->whereIn('status_pengiriman', ['menunggu', null])
@@ -60,7 +48,6 @@ class PesananController extends Controller
             }
         }
 
-        // Filter by metode pembayaran
         if ($request->filled('metode')) {
             $query->where('metode_pembayaran', $request->metode);
         }
@@ -70,9 +57,6 @@ class PesananController extends Controller
         return view('mitra.pesanan.index', compact('pesanan'));
     }
 
-    /**
-     * Update status pengiriman ke step berikutnya (State Machine).
-     */
     public function updateStatus(Request $request, $id)
     {
         $mitra = Mitra::where('user_id', Auth::id())->first();
@@ -82,29 +66,24 @@ class PesananController extends Controller
             ->where('mitra_id', $mitra->user_id)
             ->firstOrFail();
 
-        // Tentukan apakah ini transaksi Jasa atau Produk
-        $isJasa  = !is_null($transaksi->jasa_id); // Sesuaikan dengan struktur kolom database
+        $isJasa  = !is_null($transaksi->jasa_id);
         $isPO    = $transaksi->metode_pembayaran === 'po';
         $current = $transaksi->status_pengiriman ?? 'menunggu';
 
-        // Sudah di status akhir
         if ($current === 'Selesai') {
             return back()->with('error', 'Pesanan sudah berada di status akhir (Selesai).');
         }
 
-        // Non-PO: wajib sudah Lunas dari Midtrans sebelum bisa diproses (berlaku utk Produk & Jasa)
         if (!$isPO && $transaksi->status_pembayaran !== 'Lunas') {
             return back()->with('error', 'Pesanan belum terkonfirmasi lunas oleh Midtrans.');
         }
 
         if ($isJasa) {
-            // Validasi & Flow Khusus Jasa
             if ($isPO && $current === 'Diproses') {
                 return back()->with('error', 'Gunakan tombol "Konfirmasi Lunas" untuk memproses pembayaran PO Jasa terlebih dahulu.');
             }
             $nextStep = self::FLOW_MAP_JASA[$current] ?? null;
         } else {
-            // Validasi & Flow Khusus Produk
             if ($isPO && $current === 'Dikirim') {
                 return back()->with('error', 'Gunakan tombol "Konfirmasi Lunas" untuk memproses pembayaran PO Produk terlebih dahulu.');
             }
@@ -115,21 +94,19 @@ class PesananController extends Controller
             return back()->with('error', 'Alur status tidak valid.');
         }
 
-        // Update database
         $transaksi->update(['status_pengiriman' => $nextStep]);
 
-        // ✅ KIRIM NOTIFIKASI KE CUSTOMER
+        // Notif ke customer bahwa status pesanan berubah
         if ($transaksi->customer) {
-            $transaksi->customer->notify(new StatusPesananNotification($transaksi->invoice_number, $nextStep));
+            $transaksi->customer->notify(new StatusPesananNotification(
+                $transaksi->invoice_number,
+                $nextStep
+            ));
         }
 
         return back()->with('success', "Status pesanan diperbarui ke: {$nextStep}");
     }
 
-    /**
-     * Konfirmasi pelunasan PO — mengubah status pembayaran jadi Lunas
-     * dan status otomatis maju ke step selanjutnya (Diterima untuk Produk, Selesai untuk Jasa).
-     */
     public function konfirmasiLunas($id)
     {
         $mitra = Mitra::where('user_id', Auth::id())->first();
@@ -149,7 +126,6 @@ class PesananController extends Controller
 
         $isJasa = !is_null($transaksi->jasa_id);
 
-        // Validasi titik potong konfirmasi lunas berdasarkan tipe pesanan
         if ($isJasa) {
             if ($transaksi->status_pengiriman !== 'Diproses') {
                 return back()->with('error', 'Konfirmasi lunas jasa hanya bisa dilakukan saat status "Diproses".');
@@ -167,16 +143,15 @@ class PesananController extends Controller
                 $transaksi->update([
                     'status_pembayaran' => 'Lunas',
                     'tanggal_bayar'     => now(),
-                    'status_pengiriman' => $nextStatus, // Update status sesuai tipe pesanan
+                    'status_pengiriman' => $nextStatus,
                 ]);
 
-                // ✅ Log konfirmasi lunas
-\App\Models\ActivityLog::create([
-    'user_name' => auth()->user()->name,
-    'action'    => 'Konfirmasi',
-    'details'   => 'Konfirmasi lunas PO: ' . $transaksi->invoice_number .
-                   ' — Rp ' . number_format($transaksi->total, 0, ',', '.'),
-]);
+                \App\Models\ActivityLog::create([
+                    'user_name' => auth()->user()->name,
+                    'action'    => 'Konfirmasi',
+                    'details'   => 'Konfirmasi lunas PO: ' . $transaksi->invoice_number .
+                                   ' — Rp ' . number_format($transaksi->total, 0, ',', '.'),
+                ]);
 
                 Pendapatan::updateOrCreate(
                     ['transaksi_id' => $transaksi->id],
@@ -189,9 +164,12 @@ class PesananController extends Controller
                 );
             });
 
-            // ✅ KIRIM NOTIFIKASI KE CUSTOMER SETELAH PELUNASAN PO
+            // Notif ke customer setelah pelunasan PO
             if ($transaksi->customer) {
-                $transaksi->customer->notify(new StatusPesananNotification($transaksi->invoice_number, $nextStatus));
+                $transaksi->customer->notify(new StatusPesananNotification(
+                    $transaksi->invoice_number,
+                    $nextStatus
+                ));
             }
 
             $pesanSukses = $isJasa
