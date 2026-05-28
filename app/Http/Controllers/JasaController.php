@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Jasa;
 use App\Models\Produk;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Cloudinary\Cloudinary;
@@ -81,6 +82,13 @@ class JasaController extends Controller
             'status'           => 'aktif',
         ]);
 
+        // ✅ Log
+        ActivityLog::create([
+            'user_name' => Auth::user()->name,
+            'action'    => 'Tambah',
+            'details'   => 'Menambahkan jasa: ' . $request->nama_jasa,
+        ]);
+
         return redirect()->route('mitra.kelola')->with('success', 'Layanan jasa berhasil ditambahkan!');
     }
 
@@ -113,11 +121,9 @@ class JasaController extends Controller
 
         if ($request->hasFile('gambar')) {
             $cloudinary = $this->getCloudinary();
-
             if ($jasa->gambar_public_id) {
                 $cloudinary->uploadApi()->destroy($jasa->gambar_public_id);
             }
-
             $result         = $cloudinary->uploadApi()->upload($request->file('gambar')->getRealPath());
             $gambarUrl      = $result['secure_url'];
             $gambarPublicId = $result['public_id'];
@@ -132,12 +138,20 @@ class JasaController extends Controller
             'gambar_public_id' => $gambarPublicId,
         ]);
 
+        // ✅ Log
+        ActivityLog::create([
+            'user_name' => Auth::user()->name,
+            'action'    => 'Ubah',
+            'details'   => 'Mengubah jasa: ' . $request->nama_jasa,
+        ]);
+
         return redirect()->route('mitra.kelola')->with('success', 'Layanan jasa berhasil diperbarui!');
     }
 
     public function destroy($id)
     {
-        $jasa = Jasa::where('user_id', Auth::id())->findOrFail($id);
+        $jasa     = Jasa::where('user_id', Auth::id())->findOrFail($id);
+        $namaJasa = $jasa->nama_jasa;
 
         if ($jasa->gambar_public_id) {
             $cloudinary = $this->getCloudinary();
@@ -145,6 +159,13 @@ class JasaController extends Controller
         }
 
         $jasa->delete();
+
+        // ✅ Log
+        ActivityLog::create([
+            'user_name' => Auth::user()->name,
+            'action'    => 'Hapus',
+            'details'   => 'Menghapus jasa: ' . $namaJasa,
+        ]);
 
         return redirect()->back()->with('success', 'Layanan jasa berhasil dihapus!');
     }

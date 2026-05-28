@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Produk;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Cloudinary\Cloudinary;
@@ -66,6 +67,13 @@ class ProductController extends Controller
             'status'           => 'tersedia',
         ]);
 
+        // ✅ Log
+        ActivityLog::create([
+            'user_name' => Auth::user()->name,
+            'action'    => 'Tambah',
+            'details'   => 'Menambahkan produk: ' . $request->nama_produk,
+        ]);
+
         return redirect()->route('mitra.kelola')->with('success', 'Produk berhasil ditambahkan!');
     }
 
@@ -98,11 +106,9 @@ class ProductController extends Controller
 
         if ($request->hasFile('gambar')) {
             $cloudinary = $this->getCloudinary();
-
             if ($produk->gambar_public_id) {
                 $cloudinary->uploadApi()->destroy($produk->gambar_public_id);
             }
-
             $result         = $cloudinary->uploadApi()->upload($request->file('gambar')->getRealPath());
             $gambarUrl      = $result['secure_url'];
             $gambarPublicId = $result['public_id'];
@@ -117,12 +123,20 @@ class ProductController extends Controller
             'gambar_public_id' => $gambarPublicId,
         ]);
 
+        // ✅ Log
+        ActivityLog::create([
+            'user_name' => Auth::user()->name,
+            'action'    => 'Ubah',
+            'details'   => 'Mengubah produk: ' . $request->nama_produk,
+        ]);
+
         return redirect()->route('mitra.kelola')->with('success', 'Produk berhasil diperbarui!');
     }
 
     public function destroy($id)
     {
-        $produk = Produk::where('user_id', Auth::id())->findOrFail($id);
+        $produk     = Produk::where('user_id', Auth::id())->findOrFail($id);
+        $namaProduk = $produk->nama_produk;
 
         if ($produk->gambar_public_id) {
             $cloudinary = $this->getCloudinary();
@@ -130,6 +144,13 @@ class ProductController extends Controller
         }
 
         $produk->delete();
+
+        // ✅ Log
+        ActivityLog::create([
+            'user_name' => Auth::user()->name,
+            'action'    => 'Hapus',
+            'details'   => 'Menghapus produk: ' . $namaProduk,
+        ]);
 
         return redirect()->back()->with('success', 'Produk berhasil dihapus!');
     }
