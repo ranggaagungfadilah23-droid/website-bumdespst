@@ -24,17 +24,20 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
-        $user = Auth::user();
-        $role = trim($user->role);
+        $user  = Auth::user();
+        $role  = trim($user->role);
 
-        // Ambil atau buat browser_token (identitas browser ini)
+        // Ambil browser_token dari cookie, atau buat baru
         $browserToken = $request->cookie('browser_token') ?? Str::random(40);
 
-        // Simpan sesi akun ini ke daftar akun aktif
-        UserSession::updateOrCreate(
-            ['browser_token' => $browserToken, 'user_id' => $user->id],
-            ['session_id' => session()->getId()]
-        );
+        try {
+            UserSession::updateOrCreate(
+                ['browser_token' => $browserToken, 'user_id' => $user->id],
+                ['session_id'    => session()->getId()]
+            );
+        } catch (\Exception $e) {
+            \Log::error('UserSession store failed: ' . $e->getMessage());
+        }
 
         ActivityLog::create([
             'user_name' => $user->name,
@@ -51,47 +54,60 @@ class AuthenticatedSessionController extends Controller
             default                   => redirect()->intended('/'),
         };
 
-        return $redirect->withCookie(cookie()->forever('browser_token', $browserToken));
+        return $redirect->withCookie(
+            cookie('browser_token', $browserToken, 60 * 24 * 365, '/', null, true, false, false, 'lax')
+        );
     }
 
-    // Method untuk switch akun
-   public function switchAccount(Request $request, $userId): RedirectResponse
-{
-    $browserToken = $request->cookie('browser_token');
+    public function switchAccount(Request $request, $userId): RedirectResponse
+    {
+        $browserToken = $request->cookie('browser_token');
 
-    $userSession = UserSession::where('browser_token', $browserToken)
-        ->where('user_id', $userId)
-        ->first();
+        $userSession = UserSession::where('browser_token', $browserToken)
+            ->where('user_id', $userId)
+            ->first();
 
-    if (!$userSession) {
-        return redirect()->route('login')->with('error', 'Akun tidak ditemukan.');
+        if (!$userSession) {
+            return redirect()->route('login')->with('error', 'Akun tidak ditemukan.');
+        }
+
+        $user = \App\Models\User::find($userId);
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'User tidak ditemukan.');
+        }
+
+        Auth::guard('web')->logout();
+        $request->session()->flush();
+
+        Auth::login($user);
+        $request->session()->regenerate(true);
+
+        $userSession->update(['session_id' => session()->getId()]);
+
+        $role = trim($user->role);
+
+        ActivityLog::create([
+            'user_name' => $user->name,
+            'action'    => 'Switch Akun',
+            'details'   => 'Beralih ke akun: ' . $user->name . ' (' . $role . ')',
+        ]);
+
+        $redirect = match(true) {
+            $role === 'admin'         => redirect()->route('admin.dashboard'),
+            $role === 'kepala-bumdes' => redirect()->route('kepala-bumdes.dashboard'),
+            $role === 'mitra' && $user->mitra?->status === 'aktif' => redirect()->route('mitra.dashboard'),
+            $role === 'mitra'         => redirect()->route('mitra.menunggu'),
+            default                   => redirect()->route('customer.dashboard'),
+        };
+
+        return $redirect->withCookie(
+            cookie('browser_token', $browserToken, 60 * 24 * 365, '/', null, true, false, false, 'lax')
+        );
     }
-
-    Auth::logout();
-    $user = \App\Models\User::find($userId);
-    Auth::login($user);
-    $request->session()->regenerate();
-
-    // Update session_id yang baru setelah regenerate
-    $userSession->update(['session_id' => session()->getId()]);
-
-    $role = trim($user->role);
-
-    $redirect = match(true) {
-        $role === 'admin'         => redirect()->route('admin.dashboard'),
-        $role === 'kepala-bumdes' => redirect()->route('kepala-bumdes.dashboard'),
-        $role === 'mitra' && $user->mitra?->status === 'aktif' => redirect()->route('mitra.dashboard'),
-        $role === 'mitra'         => redirect()->route('mitra.menunggu'),
-        default                   => redirect()->route('customer.dashboard'),
-    };
-
-    // ← Kembalikan cookie agar tidak hilang
-    return $redirect->withCookie(cookie()->forever('browser_token', $browserToken));
-}
 
     public function destroy(Request $request): RedirectResponse
     {
-        $user = Auth::user();
+        $user         = Auth::user();
         $browserToken = $request->cookie('browser_token');
 
         if ($user) {
@@ -101,7 +117,6 @@ class AuthenticatedSessionController extends Controller
                 'details'   => $user->name . ' logout dari sistem',
             ]);
 
-            // Hapus hanya sesi akun ini dari daftar
             UserSession::where('browser_token', $browserToken)
                 ->where('user_id', $user->id)
                 ->delete();
