@@ -12,8 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
  ->withMiddleware(function (Middleware $middleware) {
 
-    // HAPUS baris ini ← penyebab redirect loop
-    // $middleware->prepend(\App\Http\Middleware\RoleBasedSession::class);
+    // ← Tambahkan ini
+    $middleware->encryptCookies(except: [
+        'browser_token',
+    ]);
 
     $middleware->trustProxies(at: '*');
 
