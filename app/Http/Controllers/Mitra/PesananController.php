@@ -170,6 +170,14 @@ class PesananController extends Controller
                     'status_pengiriman' => $nextStatus, // Update status sesuai tipe pesanan
                 ]);
 
+                // ✅ Log konfirmasi lunas
+\App\Models\ActivityLog::create([
+    'user_name' => auth()->user()->name,
+    'action'    => 'Konfirmasi',
+    'details'   => 'Konfirmasi lunas PO: ' . $transaksi->invoice_number .
+                   ' — Rp ' . number_format($transaksi->total, 0, ',', '.'),
+]);
+
                 Pendapatan::updateOrCreate(
                     ['transaksi_id' => $transaksi->id],
                     [

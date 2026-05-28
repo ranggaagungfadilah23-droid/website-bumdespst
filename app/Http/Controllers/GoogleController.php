@@ -160,6 +160,13 @@ class GoogleController extends Controller
         event(new Registered($user));
         Auth::login($user);
 
+        // ✅ Log daftar mitra
+\App\Models\ActivityLog::create([
+    'user_name' => $user->name,
+    'action'    => 'Daftar',
+    'details'   => 'Mitra baru mendaftar: ' . $user->name . ' — Usaha: ' . $request->nama_usaha,
+]);
+
         return redirect()->route('mitra.menunggu')->with('success', 'Pendaftaran berhasil! Silakan verifikasi email Anda.');
     });
 }
