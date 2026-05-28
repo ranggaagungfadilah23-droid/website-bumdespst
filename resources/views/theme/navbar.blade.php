@@ -47,6 +47,15 @@
     </a>
 
     {{-- Profile dropdown --}}
+    @php
+        $browserToken = request()->cookie('browser_token');
+        $aktifAkuns = $browserToken
+            ? \App\Models\UserSession::with('user')
+                ->where('browser_token', $browserToken)
+                ->get()
+            : collect();
+    @endphp
+
     <div class="topbar-profile-wrap">
         <div id="profileTrigger" class="topbar-avatar" title="Menu akun">
             @if(Auth::check())
@@ -57,21 +66,59 @@
         </div>
 
         <div id="profileMenu" class="topbar-dropdown topbar-dropdown-hidden">
+
+            {{-- Header akun aktif --}}
             <div class="topbar-dropdown-header">
-                <p class="topbar-dropdown-label">Akun Saya</p>
+                <p class="topbar-dropdown-label">Akun Aktif</p>
                 <p class="topbar-dropdown-name">{{ Auth::user()->name ?? 'User' }}</p>
                 <p class="topbar-dropdown-role">{{ ucwords(str_replace('-', ' ', Auth::user()->role ?? '')) }}</p>
             </div>
+
+            {{-- Daftar akun lain yang sudah login --}}
+            @if($aktifAkuns->count() > 1)
+                <p class="topbar-section-label">Ganti Akun</p>
+                @foreach($aktifAkuns as $sesi)
+                    @if($sesi->user && $sesi->user_id !== Auth::id())
+                        <form method="POST" action="{{ route('switch.account', $sesi->user_id) }}">
+                            @csrf
+                            <button type="submit" class="topbar-dropdown-item topbar-account-item">
+                                <span class="topbar-mini-avatar">
+                                    {{ strtoupper(substr($sesi->user->name, 0, 1)) }}
+                                </span>
+                                <span class="topbar-account-info">
+                                    <span class="topbar-account-name">{{ $sesi->user->name }}</span>
+                                    <span class="topbar-account-role">{{ ucwords(str_replace('-', ' ', $sesi->user->role)) }}</span>
+                                </span>
+                                <i class="fas fa-chevron-right" style="font-size:10px;color:#8b949e;margin-left:auto;"></i>
+                            </button>
+                        </form>
+                    @endif
+                @endforeach
+                <div class="topbar-dropdown-divider"></div>
+            @endif
+
+            {{-- Tambah akun lain --}}
+            <a href="{{ route('login') }}" class="topbar-dropdown-item">
+                <i class="fas fa-plus-circle"></i> Tambah Akun Lain
+            </a>
+
+            <div class="topbar-dropdown-divider"></div>
+
+            {{-- Edit profil --}}
             <a href="{{ route('profile.edit') }}" class="topbar-dropdown-item">
                 <i class="fas fa-user-edit"></i> Edit Profil
             </a>
+
             <div class="topbar-dropdown-divider"></div>
+
+            {{-- Logout --}}
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="topbar-dropdown-item topbar-dropdown-danger">
                     <i class="fas fa-power-off"></i> Keluar
                 </button>
             </form>
+
         </div>
     </div>
 
@@ -121,7 +168,6 @@
 
 .topbar-spacer { flex: 1; }
 
-/* Icon buttons (notif, cart, pesanan) */
 .topbar-icon-btn {
     width: 32px; height: 32px;
     display: flex; align-items: center; justify-content: center;
@@ -137,7 +183,6 @@
 }
 .topbar-icon-btn:hover { background: #f3f4f6; color: #1f2328; }
 
-/* Badge merah */
 .topbar-badge {
     position: absolute;
     top: -5px; right: -5px;
@@ -154,7 +199,6 @@
 }
 .topbar-badge-hidden { display: none; }
 
-/* Profile */
 .topbar-profile-wrap { position: relative; flex-shrink: 0; margin-left: 2px; }
 
 .topbar-avatar {
@@ -172,11 +216,10 @@
 }
 .topbar-avatar:hover { border-color: #0969da; }
 
-/* Dropdown */
 .topbar-dropdown {
     position: absolute;
     right: 0; top: calc(100% + 8px);
-    width: 210px;
+    width: 230px;
     background: #fff;
     border: 1px solid #d0d7de;
     border-radius: 10px;
@@ -210,6 +253,50 @@
     font-size: 11px;
     color: #656d76;
     margin-top: 1px;
+}
+
+/* Label section "Ganti Akun" */
+.topbar-section-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8b949e;
+    padding: 8px 14px 2px;
+    margin: 0;
+}
+
+/* Item akun lain */
+.topbar-account-item { align-items: center; gap: 8px; }
+
+.topbar-mini-avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: #0d4a2f;
+    color: #6ee7b7;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.topbar-account-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+.topbar-account-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1f2328;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.topbar-account-role {
+    font-size: 10px;
+    color: #8b949e;
 }
 
 .topbar-dropdown-item {

@@ -16,7 +16,7 @@ use App\Http\Controllers\KepalaBumdes\MonitoringKeuanganController;
 use App\Http\Controllers\Customer\UlasanController;
 use App\Http\Controllers\Mitra\UlasanMitraController;
 use Illuminate\Support\Facades\Artisan;
-
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 // =============================================================
 // --- 1. PUBLIC AREA ---
 // =============================================================
@@ -64,6 +64,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         if ($user->role === 'kepala-bumdes') return redirect()->route('kepala-bumdes.dashboard');
         return redirect()->route('customer.dashboard');
     })->name('dashboard');
+
+       Route::post('/switch-account/{userId}', [AuthenticatedSessionController::class, 'switchAccount'])
+        ->name('switch.account');
 
     Route::get('/cari', [PencarianController::class, 'index'])->name('global.search');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
