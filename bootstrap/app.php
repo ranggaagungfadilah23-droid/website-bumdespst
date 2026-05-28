@@ -10,25 +10,25 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware) {
+ ->withMiddleware(function (Middleware $middleware) {
 
-        // ← Tambahkan baris ini
-        $middleware->prepend(\App\Http\Middleware\RoleBasedSession::class);
+    // HAPUS baris ini ← penyebab redirect loop
+    // $middleware->prepend(\App\Http\Middleware\RoleBasedSession::class);
 
-        $middleware->trustProxies(at: '*');
+    $middleware->trustProxies(at: '*');
 
-        $middleware->alias([
-            'role'        => \App\Http\Middleware\RoleMiddleware::class,
-            'mitra_check' => \App\Http\Middleware\CheckMitraStatus::class,
-            'guest'       => \App\Http\Middleware\RedirectIfAuthenticated::class,
-            'auth'        => \App\Http\Middleware\Authenticate::class,
-        ]);
+    $middleware->alias([
+        'role'        => \App\Http\Middleware\RoleMiddleware::class,
+        'mitra_check' => \App\Http\Middleware\CheckMitraStatus::class,
+        'guest'       => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'auth'        => \App\Http\Middleware\Authenticate::class,
+    ]);
 
-        $middleware->validateCsrfTokens(except: [
-            'midtrans/callback',
-            'logout',
-        ]);
-    })
+    $middleware->validateCsrfTokens(except: [
+        'midtrans/callback',
+        'logout',
+    ]);
+})
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
