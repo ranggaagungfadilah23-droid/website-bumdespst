@@ -39,8 +39,8 @@
                 <div class="relative bg-slate-50 flex items-center justify-center p-6 min-h-[400px]">
                     @if($produk->gambar)
                        <img src="{{ str_starts_with($produk->gambar ?? '', 'http') ? $produk->gambar : asset('storage/' . $produk->gambar) }}"
-     alt="{{ $produk->nama_produk }}"
-     class="w-full max-h-[420px] object-contain rounded-xl">
+     alt="{{ $produk->nama_produk }}">
+    <div class="w-full max-h-[420px] object-contain rounded-xl">
                              class="w-full max-h-[420px] object-contain rounded-xl">
                     @else
                         <div class="flex flex-col items-center justify-center text-slate-300 gap-3">
