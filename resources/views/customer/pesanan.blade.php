@@ -6,6 +6,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <link href="{{ asset('css/customer/pesanan.css') }}" rel="stylesheet">
     <style>
+        /* ===== RATING MODAL ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -51,6 +52,7 @@
             margin-bottom: 20px;
         }
 
+        /* Star rating */
         .star-row {
             display: flex;
             gap: 6px;
@@ -127,6 +129,7 @@
         .btn-submit-ulasan:hover { opacity: .88; }
         .btn-submit-ulasan:disabled { opacity: .5; cursor: not-allowed; }
 
+        /* ===== CARD ACTIONS ===== */
         .btn-ulasan {
             display: inline-flex;
             align-items: center;
@@ -161,6 +164,7 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
+        /* ===== REVIEW & REPLY BOX ===== */
         .review-display-box {
             margin-top: 14px;
             padding: 16px;
@@ -196,6 +200,7 @@
             line-height: 1.5;
         }
 
+        /* ===== TOAST ===== */
         .toast {
             position: fixed;
             bottom: 28px; left: 50%;
@@ -256,29 +261,7 @@
     {{-- Orders --}}
     <div class="orders-list">
         @forelse($pesanan as $t)
-
-        @php
-            {{-- Coba semua kemungkinan nama kolom gambar --}}
-            $gambar = optional($t->produk)->gambar
-                   ?? optional($t->produk)->foto
-                   ?? optional($t->produk)->image
-                   ?? optional($t->jasa)->gambar
-                   ?? optional($t->jasa)->foto
-                   ?? optional($t->jasa)->image
-                   ?? null;
-
-            $namaItem = optional($t->produk)->nama_produk
-                     ?? optional($t->jasa)->nama_jasa
-                     ?? 'Item';
-
-            $mitraId = $t->mitra_id
-                    ?? optional($t->produk)->mitra_id
-                    ?? optional($t->jasa)->mitra_id
-                    ?? null;
-        @endphp
-
         <div class="order-card">
-
             {{-- Header --}}
             <div class="card-header">
                 <span class="invoice-num">#{{ $t->invoice_number }}</span>
@@ -297,27 +280,22 @@
             {{-- Product Info --}}
             <div class="product-row">
                 <div class="product-img">
-                    @if($gambar)
-                        <img src="{{ str_starts_with($gambar, 'http') ? $gambar : asset('storage/' . $gambar) }}"
-                             alt="{{ $namaItem }}"
-                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                        <svg style="display:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                        </svg>
+                    @if($t->produk && $t->produk->foto)
+                        <img src="{{ asset('storage/' . $t->produk->foto) }}" alt="{{ $t->produk->nama_produk }}">
+                    @elseif($t->jasa && $t->jasa->foto)
+                        <img src="{{ asset('storage/' . $t->jasa->foto) }}" alt="{{ $t->jasa->nama_jasa }}">
                     @else
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                        </svg>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                     @endif
                 </div>
                 <div class="product-info">
-                    <div class="product-name">{{ $namaItem }}</div>
+                    <div class="product-name">{{ $t->produk->nama_produk ?? $t->jasa->nama_jasa ?? 'Item' }}</div>
                     <div class="product-meta">{{ $t->jumlah }} item</div>
                     <div class="product-total">Rp {{ number_format($t->total, 0, ',', '.') }}</div>
                 </div>
             </div>
 
-            {{-- Review & Balasan Mitra --}}
+            {{-- Bagian Render Review dan Balasan Mitra --}}
             @if(($t->status_pengiriman == 'Selesai' || $t->status_pengiriman == 'Diterima') && $t->ulasan)
                 <div class="review-display-box text-left">
                     <div class="flex items-center gap-1 text-xs font-bold text-amber-500">
@@ -331,6 +309,7 @@
                         <p class="customer-review-text">"{{ $t->ulasan->pesan }}"</p>
                     @endif
 
+                    {{-- Render Balasan dari Mitra --}}
                     @if($t->ulasan->balasan_mitra)
                         <div class="mitra-reply-box">
                             <div class="mitra-reply-title">
@@ -357,18 +336,21 @@
                 <div class="action-group">
                     <a href="{{ route('customer.invoice', $t->invoice_number) }}" class="btn btn-ghost">Lihat Detail</a>
 
+                    {{-- Kondisional Tombol / Status Ulasan --}}
                     @if($t->status_pengiriman == 'Selesai' || $t->status_pengiriman == 'Diterima')
                         @if($t->ulasan)
                             <span class="btn-sudah-ulasan">
-                                <svg fill="currentColor" viewBox="0 0 20 20" style="width:14px;height:14px;">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                </svg>
+                                <svg fill="currentColor" viewBox="0 0 20 20" style="width:14px;height:14px;"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                                 Sudah Diulas
                             </span>
                         @else
                             <button
                                 class="btn-ulasan"
-                                onclick="bukaModalUlasan('{{ $t->invoice_number }}', '{{ addslashes($namaItem) }}', {{ $mitraId ?? 'null' }})"
+                                onclick="bukaModalUlasan(
+                                    '{{ $t->invoice_number }}',
+                                    '{{ addslashes($t->produk->nama_produk ?? $t->jasa->nama_jasa ?? 'Item') }}',
+                                    {{ $t->mitra_id ?? $t->produk->mitra_id ?? $t->jasa->mitra_id ?? 'null' }}
+                                )"
                             >
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
@@ -379,7 +361,6 @@
                     @endif
                 </div>
             </div>
-
         </div>
         @empty
         <div class="empty-state">
@@ -389,13 +370,14 @@
     </div>
 </div>
 
-{{-- Modal Ulasan --}}
+{{-- ===== MODAL ULASAN ===== --}}
 <div class="modal-overlay" id="modalUlasan">
     <div class="modal-box">
         <button class="modal-close" onclick="tutupModal()">&times;</button>
         <div class="modal-title">Beri Ulasan & Penilaian</div>
         <p class="modal-subtitle" id="modalSubtitle">Bagaimana pengalaman kamu?</p>
 
+        {{-- Bintang --}}
         <div class="star-row" id="starRow">
             @for($i = 1; $i <= 5; $i++)
                 <button class="star-btn" data-val="{{ $i }}" onclick="setBintang({{ $i }})" type="button">★</button>
@@ -403,6 +385,7 @@
         </div>
         <div class="star-label" id="starLabel"></div>
 
+        {{-- Textarea ulasan --}}
         <textarea
             class="modal-textarea"
             id="pesanUlasan"
@@ -417,6 +400,7 @@
     </div>
 </div>
 
+{{-- Toast --}}
 <div class="toast" id="toast"></div>
 
 @push('scripts')
@@ -451,6 +435,7 @@
         document.getElementById('btnSubmit').disabled = false;
     }
 
+    // Hover efek bintang
     document.querySelectorAll('.star-btn').forEach(btn => {
         btn.addEventListener('mouseenter', () => {
             const hoverVal = parseInt(btn.dataset.val);
