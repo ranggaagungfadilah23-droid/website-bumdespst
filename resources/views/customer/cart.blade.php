@@ -35,9 +35,9 @@
                     @endif
 
                     @php
-                        $nama     = $cart->produk->nama_produk ?? $cart->jasa->nama_jasa ?? '-';
-                        $harga    = $cart->produk->harga ?? $cart->jasa->harga ?? 0;
-                        $gambar   = $cart->produk->gambar ?? $cart->jasa->gambar ?? '';
+                        $nama     = optional($cart->produk)->nama_produk ?? optional($cart->jasa)->nama_jasa ?? '-';
+                        $harga    = optional($cart->produk)->harga ?? optional($cart->jasa)->harga ?? 0;
+                        $gambar   = optional($cart->produk)->gambar ?? optional($cart->jasa)->gambar ?? '';
                         $tipe     = $cart->produk ? 'Produk' : 'Jasa';
                         $subtotal = $harga * $cart->jumlah;
                     @endphp
@@ -51,7 +51,7 @@
                                class="cart-checkbox w-6 h-6 text-blue-600 rounded-lg border-slate-300 focus:ring-blue-500 cursor-pointer shrink-0 transition">
 
                         <div class="w-20 h-20 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-slate-50">
-                               <img src="{{ str_starts_with($jasa->gambar ?? '', 'http') ? $jasa->gambar : asset('storage/' . $jasa->gambar) }}" alt="{{ $jasa->nama_jasa }}" class="jasa-img">
+                            <img src="{{ $gambar ? (str_starts_with($gambar, 'http') ? $gambar : asset('storage/' . $gambar)) : asset('images/placeholder.png') }}"
                                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                  onerror="this.src='{{ asset('images/placeholder.png') }}'">
                         </div>
@@ -174,8 +174,6 @@
     }
 
     checkboxes.forEach(cb => cb.addEventListener('change', updateSummary));
-
-    // Reset ringkasan saat halaman dimuat (jika ada cache browser)
     window.addEventListener('load', updateSummary);
 </script>
 
