@@ -6,7 +6,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <link href="{{ asset('css/customer/pesanan.css') }}" rel="stylesheet">
     <style>
-        /* ===== RATING MODAL ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -52,7 +51,6 @@
             margin-bottom: 20px;
         }
 
-        /* Star rating */
         .star-row {
             display: flex;
             gap: 6px;
@@ -129,7 +127,6 @@
         .btn-submit-ulasan:hover { opacity: .88; }
         .btn-submit-ulasan:disabled { opacity: .5; cursor: not-allowed; }
 
-        /* ===== CARD ACTIONS ===== */
         .btn-ulasan {
             display: inline-flex;
             align-items: center;
@@ -164,7 +161,6 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
-        /* ===== REVIEW & REPLY BOX ===== */
         .review-display-box {
             margin-top: 14px;
             padding: 16px;
@@ -200,7 +196,6 @@
             line-height: 1.5;
         }
 
-        /* ===== TOAST ===== */
         .toast {
             position: fixed;
             bottom: 28px; left: 50%;
@@ -261,6 +256,27 @@
     {{-- Orders --}}
     <div class="orders-list">
         @forelse($pesanan as $t)
+
+        @php
+            {{-- Coba semua kemungkinan nama kolom gambar --}}
+            $gambar = optional($t->produk)->gambar
+                   ?? optional($t->produk)->foto
+                   ?? optional($t->produk)->image
+                   ?? optional($t->jasa)->gambar
+                   ?? optional($t->jasa)->foto
+                   ?? optional($t->jasa)->image
+                   ?? null;
+
+            $namaItem = optional($t->produk)->nama_produk
+                     ?? optional($t->jasa)->nama_jasa
+                     ?? 'Item';
+
+            $mitraId = $t->mitra_id
+                    ?? optional($t->produk)->mitra_id
+                    ?? optional($t->jasa)->mitra_id
+                    ?? null;
+        @endphp
+
         <div class="order-card">
 
             {{-- Header --}}
@@ -281,12 +297,13 @@
             {{-- Product Info --}}
             <div class="product-row">
                 <div class="product-img">
-                    @php
-                        $foto = $t->produk->foto ?? $t->jasa->foto ?? null;
-                    @endphp
-                    @if($foto)
-                        <img src="{{ str_starts_with($foto, 'http') ? $foto : asset('storage/' . $foto) }}"
-                             alt="{{ $t->produk->nama_produk ?? $t->jasa->nama_jasa ?? 'Item' }}">
+                    @if($gambar)
+                        <img src="{{ str_starts_with($gambar, 'http') ? $gambar : asset('storage/' . $gambar) }}"
+                             alt="{{ $namaItem }}"
+                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <svg style="display:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                        </svg>
                     @else
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
@@ -294,7 +311,7 @@
                     @endif
                 </div>
                 <div class="product-info">
-                    <div class="product-name">{{ $t->produk->nama_produk ?? $t->jasa->nama_jasa ?? 'Item' }}</div>
+                    <div class="product-name">{{ $namaItem }}</div>
                     <div class="product-meta">{{ $t->jumlah }} item</div>
                     <div class="product-total">Rp {{ number_format($t->total, 0, ',', '.') }}</div>
                 </div>
@@ -351,11 +368,7 @@
                         @else
                             <button
                                 class="btn-ulasan"
-                                onclick="bukaModalUlasan(
-                                    '{{ $t->invoice_number }}',
-                                    '{{ addslashes($t->produk->nama_produk ?? $t->jasa->nama_jasa ?? 'Item') }}',
-                                    {{ $t->mitra_id ?? $t->produk->mitra_id ?? $t->jasa->mitra_id ?? 'null' }}
-                                )"
+                                onclick="bukaModalUlasan('{{ $t->invoice_number }}', '{{ addslashes($namaItem) }}', {{ $mitraId ?? 'null' }})"
                             >
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
@@ -376,14 +389,13 @@
     </div>
 </div>
 
-{{-- ===== MODAL ULASAN ===== --}}
+{{-- Modal Ulasan --}}
 <div class="modal-overlay" id="modalUlasan">
     <div class="modal-box">
         <button class="modal-close" onclick="tutupModal()">&times;</button>
         <div class="modal-title">Beri Ulasan & Penilaian</div>
         <p class="modal-subtitle" id="modalSubtitle">Bagaimana pengalaman kamu?</p>
 
-        {{-- Bintang --}}
         <div class="star-row" id="starRow">
             @for($i = 1; $i <= 5; $i++)
                 <button class="star-btn" data-val="{{ $i }}" onclick="setBintang({{ $i }})" type="button">★</button>
@@ -391,7 +403,6 @@
         </div>
         <div class="star-label" id="starLabel"></div>
 
-        {{-- Textarea --}}
         <textarea
             class="modal-textarea"
             id="pesanUlasan"
@@ -406,7 +417,6 @@
     </div>
 </div>
 
-{{-- Toast --}}
 <div class="toast" id="toast"></div>
 
 @push('scripts')
@@ -441,7 +451,6 @@
         document.getElementById('btnSubmit').disabled = false;
     }
 
-    // Hover efek bintang
     document.querySelectorAll('.star-btn').forEach(btn => {
         btn.addEventListener('mouseenter', () => {
             const hoverVal = parseInt(btn.dataset.val);
