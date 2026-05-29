@@ -24,6 +24,7 @@
             {{ session('success') }}
         </div>
         @endif
+
         @if(session('error'))
         <div class="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
             <i class="fas fa-exclamation-circle text-red-500"></i>
@@ -38,7 +39,7 @@
                 {{-- GAMBAR --}}
                 <div class="relative bg-slate-50 flex items-center justify-center p-6 min-h-[400px]">
                     @if($jasa->gambar)
-                        <img src="{{ asset('storage/' . $jasa->gambar) }}"
+                        <img src="{{ str_starts_with($jasa->gambar, 'http') ? $jasa->gambar : asset('storage/' . $jasa->gambar) }}"
                              alt="{{ $jasa->nama_jasa }}"
                              class="w-full max-h-[420px] object-contain rounded-xl">
                     @else
@@ -48,7 +49,7 @@
                         </div>
                     @endif
 
-                    {{-- Badge --}}
+                    {{-- Badge Satuan --}}
                     <div class="absolute top-4 left-4">
                         <span class="bg-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow">
                             {{ $jasa->satuan }}
@@ -102,7 +103,7 @@
                     <form action="{{ route('customer.cart.add.jasa', $jasa->id) }}" method="POST">
                         @csrf
 
-                        {{-- Quantity --}}
+                        {{-- Jumlah --}}
                         <div class="mb-5">
                             <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Jumlah</p>
                             <div class="flex items-center gap-4">
@@ -125,7 +126,7 @@
                             </div>
                         </div>
 
-                        {{-- Tombol --}}
+                        {{-- Tombol Aksi --}}
                         <div class="flex gap-3">
                             <button type="submit"
                                     class="flex-1 flex items-center justify-center gap-2 border-2 border-orange-500 text-orange-500 bg-orange-50 py-3.5 rounded-xl font-bold text-sm hover:bg-orange-100 transition-all">
@@ -139,8 +140,8 @@
                             </button>
                         </div>
                     </form>
-
                 </div>
+
             </div>
         </div>
 

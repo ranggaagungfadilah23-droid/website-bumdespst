@@ -24,6 +24,7 @@
             {{ session('success') }}
         </div>
         @endif
+
         @if(session('error'))
         <div class="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
             <i class="fas fa-exclamation-circle text-red-500"></i>
@@ -38,9 +39,8 @@
                 {{-- GAMBAR --}}
                 <div class="relative bg-slate-50 flex items-center justify-center p-6 min-h-[400px]">
                     @if($produk->gambar)
-                       <img src="{{ str_starts_with($produk->gambar ?? '', 'http') ? $produk->gambar : asset('storage/' . $produk->gambar) }}"
-     alt="{{ $produk->nama_produk }}">
-    <div class="w-full max-h-[420px] object-contain rounded-xl">
+                        <img src="{{ str_starts_with($produk->gambar, 'http') ? $produk->gambar : asset('storage/' . $produk->gambar) }}"
+                             alt="{{ $produk->nama_produk }}"
                              class="w-full max-h-[420px] object-contain rounded-xl">
                     @else
                         <div class="flex flex-col items-center justify-center text-slate-300 gap-3">
@@ -68,6 +68,7 @@
                     <div>
                         <h1 class="text-2xl font-bold text-slate-800 leading-snug mb-3">{{ $produk->nama_produk }}</h1>
 
+                        {{-- Harga --}}
                         <div class="bg-orange-50 border border-orange-100 rounded-xl px-5 py-4 mb-5">
                             <p class="text-xs text-slate-400 mb-1">Harga produk</p>
                             <p class="text-3xl font-black text-orange-500">
@@ -75,7 +76,7 @@
                             </p>
                         </div>
 
-                        {{-- Info Mitra --}}
+                        {{-- Info Penjual --}}
                         <div class="flex items-center gap-3 mb-5 p-3 bg-slate-50 rounded-xl border border-slate-100">
                             <div class="w-9 h-9 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center font-black text-sm">
                                 {{ strtoupper(substr($produk->user->name ?? 'M', 0, 1)) }}
@@ -95,13 +96,17 @@
 
                     {{-- FORM ORDER --}}
                     <div>
+                        {{-- Jumlah --}}
                         <div class="mb-5">
                             <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Jumlah</p>
                             <div class="flex items-center gap-4">
                                 <div class="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden">
-                                    <button type="button" id="btnMinus" onclick="changeQty(-1)" class="w-11 h-11 flex items-center justify-center hover:bg-orange-50 text-slate-600 font-bold transition text-lg">−</button>
-                                    <input type="number" id="jumlahDisplay" value="1" min="1" max="{{ $produk->jumlah }}" class="w-14 text-center font-bold text-slate-800 border-x-2 border-slate-200 h-11 outline-none text-sm" readonly>
-                                    <button type="button" id="btnPlus" onclick="changeQty(1)" class="w-11 h-11 flex items-center justify-center hover:bg-orange-50 text-slate-600 font-bold transition text-lg">+</button>
+                                    <button type="button" onclick="changeQty(-1)"
+                                            class="w-11 h-11 flex items-center justify-center hover:bg-orange-50 text-slate-600 font-bold transition text-lg">−</button>
+                                    <input type="number" id="jumlahDisplay" value="1" min="1" max="{{ $produk->jumlah }}"
+                                           class="w-14 text-center font-bold text-slate-800 border-x-2 border-slate-200 h-11 outline-none text-sm" readonly>
+                                    <button type="button" onclick="changeQty(1)"
+                                            class="w-11 h-11 flex items-center justify-center hover:bg-orange-50 text-slate-600 font-bold transition text-lg">+</button>
                                 </div>
                                 <span class="text-xs text-slate-400">Stok: <strong>{{ $produk->jumlah }}</strong></span>
                             </div>
@@ -113,7 +118,8 @@
                                 @csrf
                                 <input type="hidden" name="produk_id" value="{{ $produk->id }}">
                                 <input type="hidden" name="jumlah" id="jumlahKeranjang" value="1">
-                                <button type="submit" class="w-full flex items-center justify-center gap-2 border-2 border-orange-500 text-orange-500 bg-orange-50 py-3.5 rounded-xl font-bold text-sm hover:bg-orange-100 transition-all">
+                                <button type="submit"
+                                        class="w-full flex items-center justify-center gap-2 border-2 border-orange-500 text-orange-500 bg-orange-50 py-3.5 rounded-xl font-bold text-sm hover:bg-orange-100 transition-all">
                                     <i class="fas fa-shopping-cart"></i> Keranjang
                                 </button>
                             </form>
@@ -123,13 +129,15 @@
                                 <input type="hidden" name="buy_now" value="1">
                                 <input type="hidden" name="produk_id" value="{{ $produk->id }}">
                                 <input type="hidden" name="jumlah" id="jumlahBeli" value="1">
-                                <button type="submit" class="w-full flex items-center justify-center gap-2 bg-orange-500 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-orange-600 transition-all shadow-lg shadow-orange-200">
+                                <button type="submit"
+                                        class="w-full flex items-center justify-center gap-2 bg-orange-500 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-orange-600 transition-all shadow-lg shadow-orange-200">
                                     <i class="fas fa-bolt"></i> Beli Sekarang
                                 </button>
                             </form>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
