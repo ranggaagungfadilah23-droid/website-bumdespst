@@ -113,7 +113,7 @@ class InputKeuanganController extends Controller
         $labelHarian = [];
         $dataMasukHarian = [];
         $dataKeluarHarian = [];
-        $jumlahHari = cal_days_in_month(CAL_GREGORIAN, $bulanAktif, $tahunAktif);
+      $jumlahHari = Carbon::createFromDate($tahunAktif, $bulanAktif, 1)->daysInMonth;
 
         for ($d = 1; $d <= $jumlahHari; $d++) {
             $labelHarian[] = "Tgl $d";
