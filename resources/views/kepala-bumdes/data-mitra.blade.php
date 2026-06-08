@@ -1,5 +1,5 @@
 @extends('theme.default')
-
+@section('title', 'Data Mitra - BUMDes Patimban')
 @push('navbar-search')
 <div class="flex items-center">
     <form action="{{ route('global.search') }}" method="GET" class="flex items-center w-full max-w-[140px] sm:max-w-xs md:max-w-none">
