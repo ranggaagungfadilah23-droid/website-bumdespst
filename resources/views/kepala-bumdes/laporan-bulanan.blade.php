@@ -1,6 +1,6 @@
 @extends('theme.default')
 
-@section('title', 'Laporan Bulanan - BUMDes Patimban')
+@section('title', 'Monitoring Keuangan - BUMDes Patimban')
 @section('content')
 <div class="min-h-screen bg-slate-50 p-6 md:p-10 space-y-8">
 
