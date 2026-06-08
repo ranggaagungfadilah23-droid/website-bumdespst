@@ -16,6 +16,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\SvgWriter;
 
+
 class KepalaBumdesController extends Controller
 {
     public function dashboard()
