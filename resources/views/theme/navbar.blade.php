@@ -97,11 +97,7 @@
                 <div class="topbar-dropdown-divider"></div>
             @endif
 
-            {{-- Tambah akun lain --}}
-            <a href="{{ route('login') }}" class="topbar-dropdown-item">
-                <i class="fas fa-plus-circle"></i> Tambah Akun Lain
-            </a>
-
+        
             <div class="topbar-dropdown-divider"></div>
 
             {{-- Edit profil --}}
