@@ -1,5 +1,5 @@
 @extends('theme.default')
-
+@section('title', 'Manajemen Bagi Hasil - BUMDes Patimban')
 @section('content')
 <div class="p-8">
 

@@ -1,5 +1,5 @@
 @extends('theme.default')
-
+@section('title', 'Laporan Keuangan - BUMDes Patimban')
 @section('content')
 <div class="p-8 space-y-8">
 

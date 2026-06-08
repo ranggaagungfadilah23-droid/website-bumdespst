@@ -1,5 +1,5 @@
 @extends('theme.default')
-
+@section('title', 'Data Mitra - BUMDes Patimban')
 @push('navbar-search')
 <div class="flex items-center gap-3">
     <p class="text-sm font-bold text-slate-600 hidden md:block">Cari:</p>
