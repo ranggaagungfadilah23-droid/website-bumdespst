@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="https://res.cloudinary.com/duxq5a40j/image/upload/v1779851100/logoBumdes_nsewm6.png" type="image/png">
+    <link rel="icon" href="https://res.cloudinary.com/duxq5a40j/image/upload/v1779851100/logoBumdes_nsewm6.png" type="image/png">
     @include('theme.head')
     @stack('styles')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017.umd.js"></script>
 
     <style>
-        /* ── Global Reset & Base ── */
         *, *::before, *::after { box-sizing: border-box; }
 
         :root {
@@ -42,7 +41,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ── Sidebar ── */
         .app-sidebar {
             position: fixed;
             inset-y: 0;
@@ -63,7 +61,6 @@
 
         .app-sidebar.is-open { transform: translateX(0); }
 
-        /* Sidebar logo */
         .sidebar-logo {
             display: flex;
             align-items: center;
@@ -104,7 +101,6 @@
             .sidebar-logo-close { display: none; }
         }
 
-        /* Sidebar nav */
         .sidebar-body {
             flex: 1;
             overflow-y: auto;
@@ -167,7 +163,6 @@
         .nav-badge-blue { background: rgba(31,111,235,0.15); color: #58a6ff; }
         .nav-badge-green { background: rgba(31,136,61,0.15); color: #3fb950; }
 
-        /* Sidebar footer */
         .sidebar-footer {
             border-top: 1px solid var(--sidebar-border);
             padding: 10px;
@@ -199,14 +194,12 @@
         .sidebar-profile-name { font-size: 12px; font-weight: 600; color: #e6edf3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .sidebar-profile-role { font-size: 10px; color: #484f58; margin-top: 1px; }
 
-        /* ── App layout wrapper ── */
         .app-layout {
             display: flex;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* ── Main content column ── */
         .app-main {
             flex: 1;
             display: flex;
@@ -215,7 +208,6 @@
             overflow: hidden;
         }
 
-        /* ── Topbar ── */
         .app-topbar {
             height: var(--header-h);
             background: var(--header-bg);
@@ -247,7 +239,6 @@
             .topbar-hamburger { display: none; }
         }
 
-        /* ── Scrollable content ── */
         .app-content {
             flex: 1;
             overflow-y: auto;
@@ -264,7 +255,6 @@
             padding: 24px 20px;
         }
 
-        /* ── Mobile overlay ── */
         .sidebar-overlay {
             display: none;
             position: fixed;
@@ -276,11 +266,8 @@
         }
         .sidebar-overlay.is-open { display: block; }
 
-        /* ── Customer layout: navbar + full width ── */
         .customer-wrap { display: flex; flex-direction: column; min-height: 100vh; }
-        .customer-wrap .app-content { overflow: visible; }
 
-        /* ── Scrollbar on sidebar ── */
         .sidebar-body { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.07) transparent; }
         .sidebar-body::-webkit-scrollbar { width: 4px; }
         .sidebar-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 4px; }
@@ -300,29 +287,24 @@
         <div class="customer-wrap">
             @include('theme.partials.customer-navbar', ['hideSearch' => $hideSearch])
             <main class="flex-1 w-full">
-                <div class="max-w-7xl mx-auto p-4 md:p-8">
-                    @yield('content')
-                </div>
+                @yield('content')
             </main>
             @include('theme.footer')
         </div>
 
     {{-- ── ADMIN / MITRA / KEPALA BUMDES LAYOUT ── --}}
     @else
-        {{-- Mobile overlay --}}
         <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
 
         <div class="app-layout">
 
-            {{-- Sidebar --}}
             @if(Auth::check())
-                @if(Auth::user()->role === 'admin')         @include('theme.partials.sidebar-admin')
+                @if(Auth::user()->role === 'admin')             @include('theme.partials.sidebar-admin')
                 @elseif(Auth::user()->role === 'kepala-bumdes') @include('theme.partials.sidebar-kepala')
-                @elseif(Auth::user()->role === 'mitra')     @include('theme.partials.sidebar-mitra')
+                @elseif(Auth::user()->role === 'mitra')         @include('theme.partials.sidebar-mitra')
                 @endif
             @endif
 
-            {{-- Main column --}}
             <div class="app-main">
                 @include('theme.navbar')
 
@@ -356,6 +338,11 @@
             const sidebar = document.querySelector('.app-sidebar');
             if (sidebar?.classList.contains('is-open')) { closeSidebar(); } else { openSidebar(); }
         }
+
+        {{-- Tutup sidebar otomatis saat Turbo navigasi --}}
+        document.addEventListener('turbo:visit', function () {
+            closeSidebar();
+        });
     </script>
 </body>
 </html>

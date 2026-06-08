@@ -174,7 +174,7 @@
     }
 
     checkboxes.forEach(cb => cb.addEventListener('change', updateSummary));
-    window.addEventListener('load', updateSummary);
+   document.addEventListener('turbo:load', updateSummary)
 </script>
 
 @endsection
