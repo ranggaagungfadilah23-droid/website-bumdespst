@@ -3,7 +3,7 @@ namespace App\Http\Controllers\Mitra;
 
 use App\Http\Controllers\Controller;
 use App\Models\Transaksi;
-use App\Models\Bagihasil; // <-- JANGAN LUPA TAMBAHKAN INI
+use App\Models\BagiHasil; // <-- JANGAN LUPA TAMBAHKAN INI
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -108,7 +108,7 @@ class LaporanController extends Controller
             ]);
         } else {
             // Buat laporan baru jika belum pernah klik kirim bulan ini
-            Bagihasil::create([
+            BagiHasil::create([
                 'mitra_id'       => $mitraId,
                 'total_omzet'    => $totalOmzet,
                 'persen_bumdes'  => $persenBumdes,
