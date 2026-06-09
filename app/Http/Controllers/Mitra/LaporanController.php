@@ -86,7 +86,7 @@ class LaporanController extends Controller
         $persenMitra  = 100 - $persenBumdes;
 
         // 3. Cari laporan di bulan ini agar tidak ada duplikat / data tertimpa
-        $bh = Bagihasil::where('mitra_id', $mitraId)
+        $bh = BagiHasil::where('mitra_id', $mitraId)
                     ->whereMonth('tanggal', now()->month)
                     ->whereYear('tanggal', now()->year)
                     ->first();
