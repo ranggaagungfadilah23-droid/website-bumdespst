@@ -1,6 +1,6 @@
 {{-- resources/views/mitra/jasa/create.blade.php --}}
 @extends('theme.default')
-@section('title', 'Tambah Layanan Jasa - BUMDes Patimban')
+@section('title', 'Buat Layanan Jasa - BUMDes Patimban')
 
 @section('content')
 <div class="container-fluid px-6 py-8">
