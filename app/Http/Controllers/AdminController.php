@@ -10,6 +10,8 @@ use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
 class AdminController extends Controller
@@ -35,7 +37,6 @@ class AdminController extends Controller
             }
         });
 
-        // ✅ Log
         ActivityLog::create([
             'user_name' => auth()->user()->name,
             'action'    => 'Setuju',
@@ -50,12 +51,11 @@ class AdminController extends Controller
 
         $kepalaBumdes = User::where('role', 'kepala-bumdes')->get();
         foreach ($kepalaBumdes as $kepala) {
-            $kepala_no_hp = $kepala->no_hp ?? '';
-            if ($kepala_no_hp) {
+            if ($kepala->no_hp) {
                 $namaUsaha  = $user->mitra->nama_usaha ?? '-';
                 $jenisUsaha = $user->mitra->jenis_usaha ?? '-';
                 $pesanKepala = "Halo Kepala BUMDes,\n\nAda pendaftaran Mitra baru yang telah *LOLOS VERIFIKASI ADMIN* dan memerlukan persetujuan serta pengesahan Anda:\n\nNama Pemilik: *{$user->name}*\nNama Usaha: *{$namaUsaha}*\nJenis Usaha: *{$jenisUsaha}*\n\nStatus berkas saat ini: *Menunggu Pengesahan Kepala BUMDes*.\nSilakan masuk ke Dashboard Kepala BUMDes untuk memeriksa data dan menandatangani sertifikat pengesahan resmi.\n\n*Sistem BUMDes Patimban*";
-                $this->kirimWA($kepala_no_hp, $pesanKepala);
+                $this->kirimWA($kepala->no_hp, $pesanKepala);
             }
         }
 
@@ -77,7 +77,6 @@ class AdminController extends Controller
             $user->update(['status' => 'rejected']);
         });
 
-        // ✅ Log
         ActivityLog::create([
             'user_name' => auth()->user()->name,
             'action'    => 'Tolak',
@@ -85,11 +84,11 @@ class AdminController extends Controller
         ]);
 
         if ($no_hp) {
-            $pesanWA = "Halo *{$namaUser}*,\n\nMohon maaf, pendaftaran Mitra BUMDes Anda *DITOLAK* oleh Admin.\n\n*Alasan:* {$alasan}\n\nData berkas Anda telah kami bersihkan. Anda dapat mencoba mendaftar kembali setelah 30 hari.\n\nTerima kasih.\n\n*Admin BUMDes Patimban*";
+            $pesanWA = "Halo *{$namaUser}*,\n\nMohon maaf, pendaftaran Mitra BUMDes Anda *DITOLAK* oleh Admin.\n\n*Alasan:* {$alasan}\n\nData berkas Anda telah kami bersihkan.\n\nTerima kasih.\n\n*Admin BUMDes Patimban*";
             $this->kirimWA($no_hp, $pesanWA);
         }
 
-        return redirect()->route('admin.pengajuan')->with('success', 'Pengajuan ditolak. Detail berkas dihapus.');
+        return redirect()->route('admin.pengajuan')->with('success', 'Pengajuan ditolak.');
     }
 
     public function dataMitra()
@@ -115,14 +114,13 @@ class AdminController extends Controller
             $user->delete();
         });
 
-        // ✅ Log
         ActivityLog::create([
             'user_name' => auth()->user()->name,
             'action'    => 'Hapus',
             'details'   => 'Menghapus data mitra: ' . $namaUsaha . ' (' . $namaUser . ')',
         ]);
 
-        return redirect()->route('admin.mitra.index')->with('success', 'Data Mitra berhasil dihapus total.');
+        return redirect()->route('admin.mitra.index')->with('success', 'Data Mitra berhasil dihapus.');
     }
 
     public function laporan()
@@ -130,91 +128,40 @@ class AdminController extends Controller
         $bulanIni = now()->month;
         $tahunIni = now()->year;
 
-        $totalKasMasuk = BagiHasil::whereMonth('tanggal', $bulanIni)
-            ->whereYear('tanggal', $tahunIni)
-            ->where('status', 'SELESAI')
-            ->sum('nominal_bumdes');
-
-        $totalBagiHasil = BagiHasil::whereMonth('tanggal', $bulanIni)
-            ->whereYear('tanggal', $tahunIni)
-            ->where('status', 'SELESAI')
-            ->sum('total_omzet');
-
-        $totalMitra = Mitra::whereHas('user', fn($q) => $q->where('status', 'aktif'))->count();
-        $bulanAktif = now()->translatedFormat('F Y');
+        // Gunakan cache agar dashboard tidak berat menghitung tiap kali dibuka
+        $stats = Cache::remember("laporan_stats_{$bulanIni}_{$tahunIni}", 600, function () use ($bulanIni, $tahunIni) {
+            return [
+                'totalKasMasuk'  => BagiHasil::whereMonth('tanggal', $bulanIni)->whereYear('tanggal', $tahunIni)->where('status', 'SELESAI')->sum('nominal_bumdes'),
+                'totalBagiHasil' => BagiHasil::whereMonth('tanggal', $bulanIni)->whereYear('tanggal', $tahunIni)->where('status', 'SELESAI')->sum('total_omzet'),
+                'totalMitra'     => Mitra::whereHas('user', fn($q) => $q->where('status', 'aktif'))->count(),
+            ];
+        });
 
         $grafikBulanan = BagiHasil::selectRaw('MONTH(tanggal) as bulan, SUM(total_omzet) as omzet, SUM(nominal_bumdes) as kas_bumdes')
-            ->whereYear('tanggal', $tahunIni)
-            ->where('status', 'SELESAI')
-            ->groupBy('bulan')
-            ->orderBy('bulan')
-            ->get();
+            ->whereYear('tanggal', $tahunIni)->where('status', 'SELESAI')
+            ->groupBy('bulan')->orderBy('bulan')->get();
 
-        $namaBulan     = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-        $labelGrafik   = $grafikBulanan->map(fn($g) => $namaBulan[$g->bulan - 1]);
-        $dataOmzet     = $grafikBulanan->pluck('omzet');
-        $dataKasBumdes = $grafikBulanan->pluck('kas_bumdes');
-
+        $namaBulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        
+        // Optimasi: Gunakan Eager Loading 'mitra' agar tidak N+1 Query
         $perMitra = BagiHasil::where('status', 'SELESAI')
+            ->with('mitra') 
             ->get()
             ->groupBy('mitra_id')
             ->map(fn($group) => [
-                'nama'          => optional(Mitra::where('user_id', $group->first()->mitra_id)->first())->nama_usaha ?? '-',
+                'nama'          => $group->first()->mitra->nama_usaha ?? '-', 
                 'omzet'         => $group->sum('total_omzet'),
                 'persen_bumdes' => $group->first()->persen_bumdes,
                 'kas_bumdes'    => $group->sum('nominal_bumdes'),
             ])->values();
 
-        return view('admin.laporan', compact(
-            'totalKasMasuk', 'totalBagiHasil', 'totalMitra',
-            'bulanAktif', 'labelGrafik', 'dataOmzet', 'dataKasBumdes', 'perMitra'
-        ));
-    }
-
-    public function histori()
-    {
-        $aktivitas = \App\Models\ActivityLog::latest()->paginate(20);
-        return view('admin.histori', compact('aktivitas'));
-    }
-
-    public function kirimLaporan(Request $request)
-    {
-        $request->validate([
-            'bulan_aktif'     => 'required|string',
-            'total_kas_masuk' => 'required|numeric',
-            'total_omzet'     => 'required|numeric',
-            'total_mitra'     => 'required|integer',
-            'catatan'         => 'nullable|string|max:500',
-        ]);
-
-        \App\Models\LaporanKas::create([
-            'dikirim_oleh'    => auth()->id(),
-            'bulan_aktif'     => $request->bulan_aktif,
-            'total_kas_masuk' => $request->total_kas_masuk,
-            'total_omzet'     => $request->total_omzet,
-            'total_mitra'     => $request->total_mitra,
-            'catatan'         => $request->catatan,
-            'status'          => 'terkirim',
-            'dikirim_at'      => now(),
-        ]);
-
-        $kepalaBumdes = \App\Models\User::where('role', 'kepala-bumdes')->get();
-        foreach ($kepalaBumdes as $kepala) {
-            $kepala->notify(new \App\Notifications\LaporanKasDikirim(
-                $request->bulan_aktif,
-                $request->total_kas_masuk,
-                $request->catatan,
-            ));
-        }
-
-        // ✅ Log kirim laporan
-        ActivityLog::create([
-            'user_name' => auth()->user()->name,
-            'action'    => 'Kirim',
-            'details'   => 'Mengirim laporan keuangan bulan: ' . $request->bulan_aktif,
-        ]);
-
-        return redirect()->route('admin.laporan')->with('laporan_terkirim', true);
+        return view('admin.laporan', array_merge($stats, [
+            'bulanAktif'   => now()->translatedFormat('F Y'),
+            'labelGrafik'  => $grafikBulanan->map(fn($g) => $namaBulan[$g->bulan - 1]),
+            'dataOmzet'    => $grafikBulanan->pluck('omzet'),
+            'dataKasBumdes'=> $grafikBulanan->pluck('kas_bumdes'),
+            'perMitra'     => $perMitra
+        ]));
     }
 
     public function laporanPdf()
@@ -222,36 +169,23 @@ class AdminController extends Controller
         $bulanIni = now()->month;
         $tahunIni = now()->year;
 
-        $totalKasMasuk = BagiHasil::whereMonth('tanggal', $bulanIni)
-            ->whereYear('tanggal', $tahunIni)
-            ->where('status', 'SELESAI')
-            ->sum('nominal_bumdes');
-
-        $totalBagiHasil = BagiHasil::whereMonth('tanggal', $bulanIni)
-            ->whereYear('tanggal', $tahunIni)
-            ->where('status', 'SELESAI')
-            ->sum('total_omzet');
-
-        $totalMitra = Mitra::whereHas('user', fn($q) => $q->where('status', 'aktif'))->count();
-        $bulanAktif = now()->translatedFormat('F Y');
-
-        $perMitra = BagiHasil::whereMonth('tanggal', $bulanIni)
-            ->whereYear('tanggal', $tahunIni)
-            ->where('status', 'SELESAI')
+        $totalKasMasuk  = BagiHasil::whereMonth('tanggal', $bulanIni)->whereYear('tanggal', $tahunIni)->where('status', 'SELESAI')->sum('nominal_bumdes');
+        $totalBagiHasil = BagiHasil::whereMonth('tanggal', $bulanIni)->whereYear('tanggal', $tahunIni)->where('status', 'SELESAI')->sum('total_omzet');
+        $totalMitra     = Mitra::whereHas('user', fn($q) => $q->where('status', 'aktif'))->count();
+        
+        $perMitra = BagiHasil::whereMonth('tanggal', $bulanIni)->whereYear('tanggal', $tahunIni)->where('status', 'SELESAI')
+            ->with('mitra')
             ->get()
             ->groupBy('mitra_id')
             ->map(fn($group) => [
-                'nama'          => optional(Mitra::where('user_id', $group->first()->mitra_id)->first())->nama_usaha ?? '-',
+                'nama'          => $group->first()->mitra->nama_usaha ?? '-',
                 'omzet'         => $group->sum('total_omzet'),
                 'persen_bumdes' => $group->first()->persen_bumdes,
                 'kas_bumdes'    => $group->sum('nominal_bumdes'),
             ])->values();
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.laporan_pdf', compact(
-            'totalKasMasuk', 'totalBagiHasil', 'totalMitra', 'bulanAktif', 'perMitra'
-        ))->setPaper('a4', 'portrait');
-
-        return $pdf->stream('Laporan_BagiHasil_' . now()->format('Y_m') . '.pdf');
+        $pdf = Pdf::loadView('admin.laporan_pdf', compact('totalKasMasuk', 'totalBagiHasil', 'totalMitra', 'perMitra'));
+        return $pdf->stream('Laporan_BagiHasil.pdf');
     }
 
     private function kirimWA($no_hp, $pesan)
@@ -263,15 +197,11 @@ class AdminController extends Controller
         curl_setopt_array($curl, [
             CURLOPT_URL            => 'https://api.fonnte.com/send',
             CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 5, // Tambahkan timeout agar tidak hang
             CURLOPT_CUSTOMREQUEST  => 'POST',
-            CURLOPT_POSTFIELDS     => [
-                'target'      => $target,
-                'message'     => $pesan,
-                'countryCode' => '62',
-            ],
-            CURLOPT_HTTPHEADER => ["Authorization: $token"],
+            CURLOPT_POSTFIELDS     => ['target' => $target, 'message' => $pesan, 'countryCode' => '62'],
+            CURLOPT_HTTPHEADER     => ["Authorization: $token"],
         ]);
-
         curl_exec($curl);
         curl_close($curl);
     }

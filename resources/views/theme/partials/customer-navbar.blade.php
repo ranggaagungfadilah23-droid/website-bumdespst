@@ -36,11 +36,11 @@
             </a>
 
             <div style="position:relative;">
-                <div id="profileTrigger" style="width:36px; height:36px; background:rgba(255,255,255,0.25); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; cursor:pointer; font-size:14px; border:2px solid rgba(255,255,255,0.5);">
+                <div id="profileTrigger" style="width:36px; height:36px; background:rgba(255,255,255,0.25); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; cursor:pointer; font-size:14px; border:2px solid rgba(255,255,255,0.5); user-select:none;">
                     {{ strtoupper(substr(Auth::user()?->name ?? 'U', 0, 1)) }}
                 </div>
 
-                <div id="profileMenu" style="display:none; position:absolute; right:0; top:calc(100% + 10px); width:200px; background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.15); z-index:999; padding:8px 0; border:1px solid #eee;">
+                <div id="profileMenu" style="display:none; position:absolute; right:0; top:calc(100% + 10px); width:200px; background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.15); z-index:9999; padding:8px 0; border:1px solid #eee;">
                     <div style="padding:12px 16px; border-bottom:1px solid #f0f0f0;">
                         <div style="font-size:10px; color:#aaa; font-weight:700; text-transform:uppercase;">Akun Saya</div>
                         <div style="font-size:13px; font-weight:700; color:#333;">{{ Auth::user()->name }}</div>
@@ -61,21 +61,29 @@
 </div>
 
 <script>
-    document.addEventListener('turbo:load', function () {
+    function initProfileMenu() {
         const trigger = document.getElementById('profileTrigger');
         const menu = document.getElementById('profileMenu');
 
-        if (trigger && menu) {
-            trigger.addEventListener('click', function (e) {
-                e.stopPropagation();
-                menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-            });
+        if (!trigger || !menu) return;
 
-            document.addEventListener('click', function (e) {
-                if (!menu.contains(e.target) && e.target !== trigger) {
-                    menu.style.display = 'none';
-                }
-            });
-        }
-    });
+        // Clone untuk hapus listener lama (hindari duplikasi saat Turbo re-render)
+        const newTrigger = trigger.cloneNode(true);
+        trigger.parentNode.replaceChild(newTrigger, trigger);
+
+        newTrigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!menu.contains(e.target) && e.target !== newTrigger) {
+                menu.style.display = 'none';
+            }
+        });
+    }
+
+    // Support Turbo maupun non-Turbo
+    document.addEventListener('DOMContentLoaded', initProfileMenu);
+    document.addEventListener('turbo:load', initProfileMenu);
 </script>
