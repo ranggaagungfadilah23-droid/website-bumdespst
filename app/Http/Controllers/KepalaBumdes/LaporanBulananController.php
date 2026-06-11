@@ -53,13 +53,13 @@ class LaporanBulananController extends Controller
             ->whereYear('created_at', $tahunAktif)
             ->where('status', 'selesai')
             ->groupBy('mitra_id')
-            ->with('mitra:id,name')
+            ->with('mitra:id,nama_usaha')  // ← fix: ganti 'name' → 'nama_usaha'
             ->get();
 
         $totalKasSemua = $perMitraRaw->sum('total_kas') ?: 1;
 
         $perMitra = $perMitraRaw->map(fn($row) => [
-            'nama'      => $row->mitra->name ?? 'Mitra #' . $row->mitra_id,
+            'nama'      => $row->mitra->nama_usaha ?? 'Mitra #' . $row->mitra_id,  // ← fix
             'total_kas' => (float) $row->total_kas,
             'omzet'     => (float) $row->total_omzet,
             'persen'    => round($row->total_kas / $totalKasSemua * 100, 1),
