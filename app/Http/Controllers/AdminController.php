@@ -188,6 +188,17 @@ class AdminController extends Controller
         return $pdf->stream('Laporan_BagiHasil.pdf');
     }
 
+    public function histori()
+    {
+        // Mengambil data bagi hasil yang sudah selesai untuk ditampilkan di histori
+        $historis = BagiHasil::where('status', 'SELESAI')
+            ->with('mitra')
+            ->latest()
+            ->get();
+
+        return view('admin.histori', compact('historis'));
+    }
+
     private function kirimWA($no_hp, $pesan)
     {
         $token  = "obEnSgdDTVkALfwmMYTy";
