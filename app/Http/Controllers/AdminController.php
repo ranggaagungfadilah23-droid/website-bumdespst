@@ -187,16 +187,14 @@ class AdminController extends Controller
         $pdf = Pdf::loadView('admin.laporan_pdf', compact('totalKasMasuk', 'totalBagiHasil', 'totalMitra', 'perMitra'));
         return $pdf->stream('Laporan_BagiHasil.pdf');
     }
+public function histori()
+{
+    // Pastikan nama variabel di controller ($aktivitas) 
+    // sama dengan yang dipanggil di file blade
+    $aktivitas = \App\Models\ActivityLog::latest()->paginate(20);
 
-    public function histori()
-    {
-        $historis = BagiHasil::where('status', 'SELESAI')
-            ->with('mitra')
-            ->latest()
-            ->get();
-
-        return view('admin.histori', compact('historis'));
-    }
+    return view('admin.histori', compact('aktivitas'));
+}
 
     private function kirimWA($no_hp, $pesan)
     {
