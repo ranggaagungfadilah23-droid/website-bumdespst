@@ -190,7 +190,6 @@ class AdminController extends Controller
 
     public function histori()
     {
-        // Mengambil data bagi hasil yang sudah selesai untuk ditampilkan di histori
         $historis = BagiHasil::where('status', 'SELESAI')
             ->with('mitra')
             ->latest()
