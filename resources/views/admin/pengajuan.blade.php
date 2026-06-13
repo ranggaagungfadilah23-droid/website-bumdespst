@@ -6,7 +6,7 @@
 <div class="flex items-center gap-3">
     <p class="text-sm font-bold text-slate-600 hidden md:block">Cari:</p>
     <form action="{{ route('global.search') }}" method="GET" class="flex items-center">
-        <input type="text" name="q" placeholder="Cari fitur atau nama mitra..." value="{{ request('q') }}"
+        <input type="text" name="q" placeholder="Cari nama mitra..." value="{{ request('q') }}"
                class="border border-slate-200 rounded-l-xl px-3 py-1.5 text-sm outline-none focus:border-blue-500 w-64">
         <button type="submit" class="bg-blue-600 text-white px-4 py-1.5 text-sm rounded-r-xl font-bold hover:bg-blue-700 transition">CARI</button>
     </form>
