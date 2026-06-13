@@ -110,7 +110,7 @@ Route::get('/laporan/pdf', [AdminController::class, 'laporanPdf'])->name('lapora
     Route::middleware(['role:kepala-bumdes'])->prefix('kepala-bumdes')->name('kepala-bumdes.')->group(function () {
         Route::get('/dashboard', [KepalaBumdesController::class, 'dashboard'])->name('dashboard');
         Route::get('/pengajuan', [KepalaBumdesController::class, 'pengajuan'])->name('pengajuan');
-        Route::get('/data-mitra', [KepalaBumdesController::class, 'dataMitra'])->name('mitra.index');
+      Route::get('/data-mitra', [KepalaBumdesController::class, 'dataMitra'])->name('data-mitra');
         Route::get('/pengajuan/{id}/preview', [SuratController::class, 'apiPreview'])->name('preview-api');
         Route::patch('/pengajuan/{id}/setujui', [SuratController::class, 'setujuiMitra'])->name('setujui');
         Route::post('/pengajuan/{id}/reject', [KepalaBumdesController::class, 'reject'])->name('reject');
