@@ -95,7 +95,7 @@
                     <i class="fas fa-store text-xl"></i>
                 </div>
             </div>
-            <a href="{{ route('kepala-bumdes.mitra.index') }}" class="mt-5 inline-flex items-center text-xs font-bold text-blue-500 hover:text-blue-600 transition relative z-10">
+            <a href="{{ route('kepala-bumdes.data-mitra') }}" class="mt-5 inline-flex items-center text-xs font-bold text-blue-500 hover:text-blue-600 transition relative z-10">
                 Lihat Direktori Mitra <i class="fas fa-arrow-right ml-1.5"></i>
             </a>
         </div>
