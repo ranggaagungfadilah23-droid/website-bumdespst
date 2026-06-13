@@ -28,8 +28,8 @@
                     {{ \App\Models\User::where('role', 'mitra')->where('status', 'menunggu_kepala')->count() }}
                 </span>
             </a>
-            <a href="{{ route('kepala-bumdes.mitra.index') }}"
-               class="nav-link {{ request()->routeIs('kepala-bumdes.mitra.index') ? 'active' : '' }}">
+            <a href="{{ route('kepala-bumdes.data-mitra') }}"
+               class="nav-link {{ request()->routeIs('kepala-bumdes.data-mitra') ? 'active' : '' }}">
                 <i class="fas fa-users"></i> Data Mitra
             </a>
         </div>
