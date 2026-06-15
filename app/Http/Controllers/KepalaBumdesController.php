@@ -19,14 +19,61 @@ use Endroid\QrCode\Writer\SvgWriter;
 
 class KepalaBumdesController extends Controller
 {
-    public function dashboard()
-    {
-        $stats = [
-            'total_mitra'      => User::where('role', 'mitra')->where('status', 'aktif')->count(),
-            'pending_approval' => User::where('role', 'mitra')->where('status', 'menunggu_kepala')->count(),
-        ];
-        return view('kepala-bumdes.dashboard', compact('stats'));
+public function dashboard()
+{
+    // Hitung status mitra dalam 1 query
+    $statusCounts = User::where('role', 'mitra')
+        ->selectRaw('status, count(*) as total')
+        ->groupBy('status')
+        ->pluck('total', 'status');
+
+    $totalAktif    = $statusCounts['aktif'] ?? 0;
+    $totalMenunggu = $statusCounts['menunggu_kepala'] ?? 0;
+    $totalDitolak  = $statusCounts['ditolak'] ?? 0;
+
+    // Statistik keuangan global BUMDes
+    $totalPemasukanBumdes   = \App\Models\BagiHasil::where('status', 'SELESAI')->sum('nominal_bumdes');
+    $totalPengeluaranBumdes = \App\Models\RekapPengeluaran::sum('total_pengeluaran');
+    $saldoKasKasaran        = $totalPemasukanBumdes - $totalPengeluaranBumdes;
+
+    // Data pengajuan terbaru
+    $pengajuanTerbaru = User::where('role', 'mitra')
+        ->where('status', 'menunggu_kepala')
+        ->latest()
+        ->take(5)
+        ->get();
+
+    // Data grafik 6 bulan terakhir - 1 query dengan groupBy
+    $rawData = \App\Models\BagiHasil::where('status', 'SELESAI')
+        ->where('tanggal', '>=', \Carbon\Carbon::now()->subMonths(5)->startOfMonth())
+        ->selectRaw('YEAR(tanggal) as tahun, MONTH(tanggal) as bulan, SUM(nominal_bumdes) as total')
+        ->groupBy('tahun', 'bulan')
+        ->get()
+        ->keyBy(function ($item) {
+            return $item->tahun . '-' . $item->bulan;
+        });
+
+    $chartBulan = [];
+    $chartPendapatan = [];
+    for ($i = 5; $i >= 0; $i--) {
+        $date = \Carbon\Carbon::now()->subMonths($i);
+        $key  = $date->year . '-' . $date->month;
+        $chartBulan[] = $date->translatedFormat('M Y');
+        $chartPendapatan[] = $rawData->get($key)->total ?? 0;
     }
+
+    return view('kepala-bumdes.dashboard', compact(
+        'totalAktif',
+        'totalMenunggu',
+        'totalDitolak',
+        'totalPemasukanBumdes',
+        'totalPengeluaranBumdes',
+        'saldoKasKasaran',
+        'pengajuanTerbaru',
+        'chartBulan',
+        'chartPendapatan'
+    ));
+}
 
     public function pengajuan()
     {

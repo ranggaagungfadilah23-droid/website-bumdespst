@@ -2,43 +2,10 @@
 
 @section('content')
 
-{{-- Tarik Data Otomatis di Level Blade (Agar Controller Tetap Bersih) --}}
-@php
-    // Statistik Kemitraan
-    $totalAktif = \App\Models\User::where('role', 'mitra')->where('status', 'aktif')->count();
-    $totalMenunggu = \App\Models\User::where('role', 'mitra')->where('status', 'menunggu_kepala')->count();
-    $totalDitolak = \App\Models\User::where('role', 'mitra')->where('status', 'ditolak')->count();
-
-    // Statistik Keuangan Global BUMDes
-    $totalPemasukanBumdes = \App\Models\BagiHasil::where('status', 'SELESAI')->sum('nominal_bumdes');
-    $totalPengeluaranBumdes = \App\Models\RekapPengeluaran::sum('total_pengeluaran');
-    $saldoKasKasaran = $totalPemasukanBumdes - $totalPengeluaranBumdes; // (Belum termasuk suntikan saldo awal)
-
-    // Data Pengajuan Terbaru
-    $pengajuanTerbaru = \App\Models\User::where('role', 'mitra')
-                        ->where('status', 'menunggu_kepala')
-                        ->latest()
-                        ->take(5)
-                        ->get();
-
-    // Generate Data Grafik 6 Bulan Terakhir untuk Pendapatan Bagi Hasil
-    $chartBulan = [];
-    $chartPendapatan = [];
-    for($i = 5; $i >= 0; $i--) {
-        $date = \Carbon\Carbon::now()->subMonths($i);
-        $chartBulan[] = $date->translatedFormat('M Y');
-        $chartPendapatan[] = \App\Models\BagiHasil::where('status', 'SELESAI')
-                                ->whereMonth('tanggal', $date->month)
-                                ->whereYear('tanggal', $date->year)
-                                ->sum('nominal_bumdes');
-    }
-@endphp
-
 <div class="min-h-screen bg-slate-50 p-6 md:p-10 space-y-6">
 
     {{-- HEADER EXECUTIVE --}}
     <div class="bg-gradient-to-r from-emerald-800 to-emerald-600 rounded-3xl p-8 text-white shadow-lg shadow-emerald-600/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
-        {{-- Dekorasi Latar Belakang --}}
         <div class="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 bg-white opacity-10 rounded-full blur-3xl"></div>
         <div class="absolute bottom-0 right-32 -mb-10 w-32 h-32 bg-emerald-300 opacity-20 rounded-full blur-2xl"></div>
 
@@ -165,7 +132,6 @@
                 <div class="w-48 h-48">
                     <canvas id="statusMitraChart"></canvas>
                 </div>
-                {{-- Angka di Tengah Donut --}}
                 <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span class="text-2xl font-black text-slate-800">{{ $totalAktif + $totalMenunggu + $totalDitolak }}</span>
                     <span class="text-[10px] font-bold text-slate-400 uppercase">Total Akun</span>
@@ -253,15 +219,13 @@
 </div>
 
 {{-- SCRIPT CHART.JS --}}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. CHART TREN PENDAPATAN (AREA/LINE CHART)
     const ctxTren = document.getElementById('trenPendapatanChart').getContext('2d');
 
-    // Bikin gradient untuk line chart
     let gradientArea = ctxTren.createLinearGradient(0, 0, 0, 300);
-    gradientArea.addColorStop(0, 'rgba(16, 185, 129, 0.3)'); // emerald-500 transparent
+    gradientArea.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
     gradientArea.addColorStop(1, 'rgba(16, 185, 129, 0)');
 
     new Chart(ctxTren, {
@@ -271,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Pendapatan (Rp)',
                 data: {!! json_encode($chartPendapatan) !!},
-                borderColor: '#10b981', // emerald-500
+                borderColor: '#10b981',
                 backgroundColor: gradientArea,
                 borderWidth: 3,
                 pointBackgroundColor: '#ffffff',
@@ -280,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 pointRadius: 4,
                 pointHoverRadius: 6,
                 fill: true,
-                tension: 0.4 // Smooth curve
+                tension: 0.4
             }]
         },
         options: {
@@ -289,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: '#1e293b', // slate-800
+                    backgroundColor: '#1e293b',
                     padding: 12,
                     titleFont: { size: 13 },
                     bodyFont: { size: 14, weight: 'bold' },
@@ -303,9 +267,9 @@ document.addEventListener('DOMContentLoaded', function() {
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { color: '#f1f5f9', drawBorder: false }, // slate-100
+                    grid: { color: '#f1f5f9', drawBorder: false },
                     ticks: {
-                        color: '#94a3b8', // slate-400
+                        color: '#94a3b8',
                         font: { size: 11 },
                         callback: function(value) {
                             if(value >= 1000000) return 'Rp ' + (value/1000000) + ' Jt';
@@ -321,7 +285,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 2. CHART STATUS MITRA (DOUGHNUT CHART)
     const ctxStatus = document.getElementById('statusMitraChart').getContext('2d');
     new Chart(ctxStatus, {
         type: 'doughnut',
@@ -330,9 +293,9 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 data: [{{ $totalAktif }}, {{ $totalMenunggu }}, {{ $totalDitolak }}],
                 backgroundColor: [
-                    '#3b82f6', // blue-500
-                    '#fbbf24', // amber-400
-                    '#f87171'  // red-400
+                    '#3b82f6',
+                    '#fbbf24',
+                    '#f87171'
                 ],
                 borderWidth: 0,
                 hoverOffset: 5
@@ -341,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '75%', // Bikin lubang tengah agak besar untuk teks
+            cutout: '75%',
             plugins: {
                 legend: { display: false },
                 tooltip: {
