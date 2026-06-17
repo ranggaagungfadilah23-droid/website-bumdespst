@@ -12,3 +12,7 @@ RUN apt-get update && apt-get install -y libgmp-dev && \
 
 # Pastikan izin akses benar
 RUN chown -R www-data:www-data /var/www/html
+
+# Tambahkan baris ini di Dockerfile
+ENV PORT=8080
+EXPOSE 8080
