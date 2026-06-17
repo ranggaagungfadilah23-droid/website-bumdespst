@@ -4,6 +4,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 
 class WebPushController extends Controller
 {
