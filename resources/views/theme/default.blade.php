@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" href="https://res.cloudinary.com/duxq5a40j/image/upload/v1779851100/logoBumdes_nsewm6.png" type="image/png">
     @include('theme.head')
     @stack('styles')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    {{-- Turbo dihapus — penyebab 404 & loading lambat --}}
 
     <style>
         *, *::before, *::after { box-sizing: border-box; }
@@ -269,11 +269,24 @@
         .sidebar-overlay.is-open { display: block; }
 
         .customer-wrap { display: flex; flex-direction: column; min-height: 100vh; }
+
+        /* ── Toast Notifikasi ── */
+        @keyframes slide-in {
+            from { opacity: 0; transform: translateX(110%); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        .animate-slide-in { animation: slide-in 0.4s ease-out; }
     </style>
 </head>
 
 <body class="bg-[#f6f8fa] text-slate-800 antialiased">
     @include('theme.preloader')
+
+    {{-- Toast Container — muncul di pojok kanan atas semua halaman --}}
+    <div id="toast-container"
+         class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none"
+         style="max-width: 320px;">
+    </div>
 
     @php
         $isCustomer = Auth::check() && Auth::user()->role === 'customer';
@@ -321,6 +334,7 @@
     @include('theme.foot')
     @stack('scripts')
 
+    {{-- ── Sidebar Toggle ── --}}
     <script>
         function openSidebar() {
             document.querySelector('.app-sidebar')?.classList.add('is-open');
@@ -336,8 +350,6 @@
             const sidebar = document.querySelector('.app-sidebar');
             if (sidebar?.classList.contains('is-open')) { closeSidebar(); } else { openSidebar(); }
         }
-
-        // Ganti turbo:visit — tutup sidebar saat klik link navigasi
         document.addEventListener('click', function (e) {
             const link = e.target.closest('a[href]');
             if (link && !link.target && !link.href.startsWith('#') && !link.href.startsWith('javascript')) {
@@ -345,5 +357,164 @@
             }
         });
     </script>
+
+    {{-- ══════════════════════════════════════════════════════
+         SISTEM NOTIFIKASI REALTIME — PUSHER + WEB PUSH
+         Aktif untuk semua role yang sudah login
+    ══════════════════════════════════════════════════════ --}}
+    @auth
+    <script>
+        // ── Konfigurasi warna per role/tipe notifikasi ──
+        const WARNA = {
+            orange: { bg: 'background:#fff7ed',  border: 'border-left:4px solid #f97316', text: '#f97316' },
+            blue:   { bg: 'background:#eff6ff',  border: 'border-left:4px solid #3b82f6', text: '#3b82f6' },
+            green:  { bg: 'background:#f0fdf4',  border: 'border-left:4px solid #22c55e', text: '#22c55e' },
+            red:    { bg: 'background:#fef2f2',  border: 'border-left:4px solid #ef4444', text: '#ef4444' },
+            purple: { bg: 'background:#faf5ff',  border: 'border-left:4px solid #a855f7', text: '#a855f7' },
+        };
+
+        // ══════════════════════════════════════
+        // 1. PUSHER — notifikasi saat tab aktif
+        // ══════════════════════════════════════
+        if (typeof window.Echo !== 'undefined') {
+            window.Echo.private(`user.{{ auth()->id() }}`)
+                .listen('.notifikasi', (data) => {
+                    tambahBadge();
+                    tampilkanToast(data);
+                    bunyikanNotif();
+                });
+        }
+
+        // ══════════════════════════════════════════════════════
+        // 2. WEB PUSH — notifikasi saat tab tidak aktif (OS)
+        // ══════════════════════════════════════════════════════
+        const VAPID_PUBLIC_KEY = '{{ env("VAPID_PUBLIC_KEY") }}';
+
+        async function setupWebPush() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+            if (!VAPID_PUBLIC_KEY) return;
+
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
+                const permission   = await Notification.requestPermission();
+                if (permission !== 'granted') return;
+
+                let subscription = await registration.pushManager.getSubscription();
+
+                if (!subscription) {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly:      true,
+                        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+                    });
+
+                    await fetch('/webpush/subscribe', {
+                        method:  'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify(subscription),
+                    });
+                }
+            } catch (err) {
+                console.warn('Web Push setup gagal:', err);
+            }
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = atob(base64);
+            return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+        }
+
+        window.addEventListener('load', setupWebPush);
+
+        // ══════════════════════════════════════
+        // 3. SHARED FUNCTIONS
+        // ══════════════════════════════════════
+
+        /** Tambah angka badge di ikon notifikasi navbar */
+        function tambahBadge() {
+            const badge = document.getElementById('notif-badge');
+            if (!badge) return;
+            const current = parseInt(badge.innerText) || 0;
+            badge.innerText = current + 1;
+            badge.classList.remove('hidden');
+        }
+
+        /** Tampilkan toast popup di pojok kanan atas */
+        function tampilkanToast(data) {
+            const w     = WARNA[data.color] ?? WARNA.orange;
+            const toast = document.createElement('div');
+
+            toast.className = 'animate-slide-in pointer-events-auto';
+            toast.style.cssText = `
+                display:flex; align-items:flex-start; gap:12px;
+                ${w.bg}; ${w.border};
+                box-shadow:0 10px 40px rgba(0,0,0,0.12);
+                border-radius:12px; padding:14px 16px;
+                width:300px; position:relative;
+                transition: opacity 0.4s, transform 0.4s;
+            `;
+
+            toast.innerHTML = `
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.06);
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fas ${data.icon ?? 'fa-bell'}" style="color:${w.text};font-size:15px;"></i>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <p style="margin:0;font-size:13px;font-weight:700;color:#1f2328;">${data.title}</p>
+                    <p style="margin:4px 0 0;font-size:12px;color:#57606a;line-height:1.5;">${data.message}</p>
+                    ${data.url
+                        ? `<a href="${data.url}"
+                              style="display:inline-block;margin-top:8px;font-size:11px;
+                                     font-weight:700;color:${w.text};text-decoration:none;">
+                               Lihat Detail →
+                           </a>`
+                        : ''}
+                </div>
+                <button onclick="hapusToast(this)"
+                        style="background:none;border:none;cursor:pointer;padding:0;
+                               color:#8b949e;font-size:14px;flex-shrink:0;margin-top:2px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+
+            const container = document.getElementById('toast-container');
+            container.prepend(toast);
+
+            // Auto-hilang setelah 6 detik
+            setTimeout(() => hapusToast(toast.querySelector('button')), 6000);
+        }
+
+        /** Animasi hilang dan hapus toast */
+        function hapusToast(btn) {
+            const toast = btn?.closest?.('[class*=animate-slide-in]') ?? btn;
+            if (!toast) return;
+            toast.style.opacity  = '0';
+            toast.style.transform = 'translateX(110%)';
+            setTimeout(() => toast.remove(), 400);
+        }
+
+        /** Bunyi notifikasi sederhana via Web Audio API */
+        function bunyikanNotif() {
+            try {
+                const ctx  = new AudioContext();
+                const osc  = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(880,  ctx.currentTime);
+                osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.4);
+            } catch(e) {}
+        }
+    </script>
+    @endauth
+
 </body>
 </html>

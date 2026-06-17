@@ -56,7 +56,9 @@ Route::middleware('guest')->group(function () {
 // --- 3. AUTH AREA ---
 // =============================================================
 Route::middleware(['auth', 'verified'])->group(function () {
-
+ Route::post('/webpush/subscribe',   [WebPushController::class, 'subscribe']);
+    Route::post('/webpush/unsubscribe', [WebPushController::class, 'unsubscribe']);
+    
     Route::get('/dashboard', function () {
         $user = Auth::user();
         if ($user->role === 'admin') return redirect()->route('admin.dashboard');
