@@ -7,6 +7,8 @@ use App\Models\Cart;
 use App\Models\Produk;
 use App\Models\Transaksi;
 use App\Models\Pendapatan;
+use App\Models\User;
+use App\Notifications\PesananBaruNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -50,9 +52,9 @@ class CheckoutController extends Controller
 
     // =========================================================
     // PROCESS
-    // FIX: cart bayar_sekarang TIDAK dihapus di sini.
-    //      Cart dihapus hanya setelah Midtrans callback settlement.
-    //      Ini mencegah cart kosong jika user back dari halaman payment.
+    // Cart bayar_sekarang TIDAK dihapus di sini.
+    // Cart dihapus hanya setelah Midtrans callback settlement.
+    // Ini mencegah cart kosong jika user back dari halaman payment.
     // =========================================================
     public function process(Request $request)
     {
@@ -74,7 +76,6 @@ class CheckoutController extends Controller
         }
 
         // Bersihkan transaksi pending lama (bayar_sekarang yang belum dibayar/expired)
-        // agar tidak ada data sampah yang menghalangi checkout baru
         foreach ($carts as $cart) {
             Transaksi::where('customer_id', auth()->id())
                 ->where('status_pembayaran', 'pending')
@@ -113,11 +114,13 @@ class CheckoutController extends Controller
                     }
                 }
 
-                $harga   = $cart->produk->harga ?? $cart->jasa->harga ?? 0;
-                $total   = $harga * $cart->jumlah;
-                $mitraId = $cart->produk->user_id ?? $cart->jasa->user_id ?? null;
+                $harga    = $cart->produk->harga ?? $cart->jasa->harga ?? 0;
+                $total    = $harga * $cart->jumlah;
+                $mitraId  = $cart->produk->user_id ?? $cart->jasa->user_id ?? null;
+                $namaItem = $cart->produk->nama_produk ?? $cart->jasa->nama_jasa ?? '-';
 
-                Transaksi::create([
+                // ✅ Buat transaksi
+                $transaksi = Transaksi::create([
                     'invoice_number'    => $invoiceNumber,
                     'customer_id'       => auth()->id(),
                     'mitra_id'          => $mitraId,
@@ -132,11 +135,23 @@ class CheckoutController extends Controller
                     'status_pengiriman' => 'menunggu',
                 ]);
 
+                // ✅ Kirim notifikasi pesanan baru ke mitra
+                if ($mitraId) {
+                    $mitraUser = User::find($mitraId);
+                    $mitraUser?->notify(new PesananBaruNotification(
+                        invoiceNumber: $invoiceNumber,
+                        namaCustomer:  auth()->user()->name,
+                        namaItem:      $namaItem,
+                        total:         $total,
+                        metode:        $request->metode_pembayaran === 'po' ? 'PO' : 'Bayar Sekarang',
+                    ));
+                }
+
                 $itemDetails[] = [
                     'id'       => $cart->produk_id ?? 'jasa-' . $cart->jasa_id,
                     'price'    => (int) $harga,
                     'quantity' => (int) $cart->jumlah,
-                    'name'     => substr($cart->produk->nama_produk ?? $cart->jasa->nama_jasa ?? '-', 0, 50),
+                    'name'     => substr($namaItem, 0, 50),
                 ];
 
                 $totalAmount += $total;
@@ -170,9 +185,6 @@ class CheckoutController extends Controller
 
                 Transaksi::where('invoice_number', $invoiceNumber)
                     ->update(['snap_token' => $snapToken]);
-
-                // ✅ Snap token sukses — TIDAK hapus cart di sini
-                // Cart dihapus di callback() setelah settlement dikonfirmasi Midtrans
 
                 DB::commit();
                 return redirect()->route('customer.checkout.payment', $invoiceNumber);
@@ -213,7 +225,7 @@ class CheckoutController extends Controller
 
     // =========================================================
     // MIDTRANS WEBHOOK CALLBACK
-    // FIX: Cart bayar_sekarang dihapus di sini setelah settlement dikonfirmasi
+    // Cart bayar_sekarang dihapus di sini setelah settlement dikonfirmasi
     // =========================================================
     public function callback(Request $request)
     {
