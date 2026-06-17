@@ -4,7 +4,7 @@ use App\Http\Controllers\{
     ProfileController, GoogleController, ProductController, JasaController,
     AdminController, KepalaBumdesController, PencarianController, SuratController,
     MitraController, CheckoutController, CustomerController, NotificationsController,
-    BagihasilController
+    BagihasilController, WebPushController
 };
 use App\Http\Controllers\Mitra\PesananController;
 use App\Http\Controllers\Mitra\PendapatanController;
@@ -16,6 +16,7 @@ use App\Http\Controllers\KepalaBumdes\MonitoringKeuanganController;
 use App\Http\Controllers\Customer\UlasanController;
 use App\Http\Controllers\Mitra\UlasanMitraController;
 use Illuminate\Support\Facades\Artisan;
+
 
 // =============================================================
 // --- 1. PUBLIC AREA ---
@@ -58,7 +59,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
  Route::post('/webpush/subscribe',   [WebPushController::class, 'subscribe']);
     Route::post('/webpush/unsubscribe', [WebPushController::class, 'unsubscribe']);
-    
+
     Route::get('/dashboard', function () {
         $user = Auth::user();
         if ($user->role === 'admin') return redirect()->route('admin.dashboard');
