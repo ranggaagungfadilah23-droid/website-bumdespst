@@ -17,11 +17,11 @@
 @endpush
 
 @section('content')
-    <div class="p-6">
-        <div class="flex justify-between items-center mb-6">
+    <div class="p-3 sm:p-6">
+        <div class="flex justify-between items-center mb-4 sm:mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Data Mitra BUMDes</h1>
-                <p class="text-gray-500 text-sm">Kelola daftar warga yang telah resmi menjadi Mitra.</p>
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Data Mitra BUMDes</h1>
+                <p class="text-gray-500 text-xs sm:text-sm">Kelola daftar warga yang telah resmi menjadi Mitra.</p>
             </div>
         </div>
 
@@ -32,40 +32,72 @@
         @endif
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-50 border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wider">
-                        <th class="p-4 font-semibold">Nama Pemilik</th>
-                        <th class="p-4 font-semibold">Nama Usaha</th>
-                        <th class="p-4 font-semibold">Kategori</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 text-sm">
-                    @forelse ($mitras as $mitra)
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="p-4">
-                                <div class="font-bold text-gray-800">{{ $mitra->nama_pemilik }}</div>
-                              <div class="text-gray-500 text-xs">{{ $mitra->user->email ?? '-' }}</div>
-                            </td>
-                            <td class="p-4 font-medium text-gray-700">{{ $mitra->nama_usaha }}</td>
-                            <td class="p-4">
-                                <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">
-                                    {{ $mitra->jenis_usaha }}
-                                </span>
-                            </td>
+
+            {{-- Tablet ke atas: tabel penuh (overflow-x-auto sebagai jaring pengaman kalau layar pas-pasan) --}}
+            <div class="hidden md:block overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wider">
+                            <th class="p-4 font-semibold">Nama Pemilik</th>
+                            <th class="p-4 font-semibold">Nama Usaha</th>
+                            <th class="p-4 font-semibold">Kategori</th>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="p-8 text-center text-gray-400">
-                                <div class="flex flex-col items-center justify-center">
-                                    <i class="fas fa-box-open text-4xl mb-3 text-gray-300"></i>
-                                    <p>Belum ada Mitra yang disetujui saat ini.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 text-sm">
+                        @forelse ($mitras as $mitra)
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="p-4">
+                                    <div class="font-bold text-gray-800">{{ $mitra->nama_pemilik }}</div>
+                                    <div class="text-gray-500 text-xs">{{ $mitra->user->email ?? '-' }}</div>
+                                </td>
+                                <td class="p-4 font-medium text-gray-700">{{ $mitra->nama_usaha }}</td>
+                                <td class="p-4">
+                                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">
+                                        {{ $mitra->jenis_usaha }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="p-8 text-center text-gray-400">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <i class="fas fa-box-open text-4xl mb-3 text-gray-300"></i>
+                                        <p>Belum ada Mitra yang disetujui saat ini.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Mobile: card list, semua data tampil tanpa scroll horizontal --}}
+            <div class="md:hidden divide-y divide-gray-100">
+                @forelse ($mitras as $mitra)
+                    <div class="p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="font-bold text-gray-800 text-sm truncate">{{ $mitra->nama_pemilik }}</div>
+                                <div class="text-gray-500 text-xs truncate">{{ $mitra->user->email ?? '-' }}</div>
+                            </div>
+                            <span class="shrink-0 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap">
+                                {{ $mitra->jenis_usaha }}
+                            </span>
+                        </div>
+                        <div class="mt-2 text-xs text-gray-600">
+                            <span class="text-gray-400">Usaha:</span> <span class="font-medium text-gray-700">{{ $mitra->nama_usaha }}</span>
+                        </div>
+                    </div>
+                @empty
+                    <div class="p-8 text-center text-gray-400">
+                        <div class="flex flex-col items-center justify-center">
+                            <i class="fas fa-box-open text-4xl mb-3 text-gray-300"></i>
+                            <p class="text-sm">Belum ada Mitra yang disetujui saat ini.</p>
+                        </div>
+                    </div>
+                @endforelse
+            </div>
+
         </div>
     </div>
 @endsection
