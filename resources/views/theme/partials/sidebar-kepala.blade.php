@@ -4,7 +4,7 @@
             <i class="fas fa-user-tie"></i>
         </div>
         <span class="sidebar-logo-text">BUMDes <span style="color:#3fb950">Patimban</span></span>
-        <button class="sidebar-logo-close" onclick="closeSidebar()">
+        <button type="button" class="sidebar-logo-close" id="sidebarClose">
             <i class="fas fa-times" style="font-size:14px"></i>
         </button>
     </div>
@@ -156,6 +156,7 @@
     const toggle  = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('app-sidebar');
     const overlay = document.getElementById('sidebarOverlay');
+    const closeBtn = document.getElementById('sidebarClose');
 
     function openSidebar() {
         sidebar.classList.add('sidebar-open');
@@ -171,8 +172,9 @@
 
     toggle.addEventListener('click', openSidebar);
     overlay.addEventListener('click', closeSidebar);
+    if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
 
-    // dipakai juga oleh tombol X di dalam sidebar (onclick="closeSidebar()")
+    // dipakai juga kalau ada elemen lain yang masih panggil onclick="closeSidebar()"
     window.closeSidebar = closeSidebar;
 
     // tutup otomatis kalau resize ke desktop
