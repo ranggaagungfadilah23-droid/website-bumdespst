@@ -163,10 +163,6 @@
             <div class="about-img-wrap">
                 <img  src="https://res.cloudinary.com/duxq5a40j/image/upload/v1779850645/berandabg_d8l6rj.jpg">
             </div>
-            <div class="about-badge">
-                <strong>10+</strong>
-                <span>Tahun Melayani Desa</span>
-            </div>
         </div>
     </section>
 
