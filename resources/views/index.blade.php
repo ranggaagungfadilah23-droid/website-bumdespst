@@ -323,7 +323,7 @@
         </div>
         <div class="footer-bottom">
             <p>&copy; 2026 BUMDes Putra Samudra Patimban. Seluruh hak dilindungi.</p>
-            <p class="made-by">Dikembangkan oleh Regga Vision</p>
+            <p class="made-by">Dikembangkan oleh Kelompok Regga Vision Mahasiswa D3 Sistem Informasi Jurusan Teknologi Informasi dan Komputer Politeknik Negeri Subang</p>
         </div>
     </footer>
 

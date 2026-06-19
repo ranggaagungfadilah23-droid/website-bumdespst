@@ -181,7 +181,7 @@ body {
 .hero-content {
   position: relative;
   z-index: 10;
-  padding: 120px 6% 160px;
+  padding: 120px 6% 120px;
   max-width: 780px;
   width: 100%;
   text-align: center;
@@ -324,68 +324,6 @@ body {
   color: rgba(255,255,255,0.4);
   text-transform: uppercase;
   writing-mode: vertical-rl;
-}
-
-/* ── STATS STRIP (FIXED: satu unit simetris) ── */
-.hero-stats {
-  position: absolute;
-  bottom: 44px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  gap: 0;
-
-  /* Satu panel menyatu */
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: 20px;
-  overflow: hidden;
-
-  opacity: 0;
-  animation: fadeUp 0.8s 1.2s forwards;
-}
-
-.stat-chip {
-  padding: 16px 40px;
-  text-align: center;
-  position: relative;
-  flex-shrink: 0;
-}
-
-/* Divider vertikal tipis antar chip */
-.stat-chip + .stat-chip::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 22%;
-  bottom: 22%;
-  width: 1px;
-  background: rgba(255, 255, 255, 0.16);
-}
-
-.stat-chip strong {
-  display: block;
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: var(--gold);
-  font-family: 'Playfair Display', serif;
-  line-height: 1.2;
-  letter-spacing: -0.5px;
-}
-
-.stat-chip span {
-  display: block;
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.45);
-  letter-spacing: 0.5px;
-  margin-top: 4px;
-  white-space: nowrap;
 }
 
 
@@ -892,8 +830,7 @@ footer {
   #main-navbar          { padding: 18px 5%; }
   #main-navbar.scrolled { padding: 13px 5%; }
 
-  .hero-content { padding: 100px 5% 160px; }
-
+  .hero-content { padding: 100px 5% 120px; }
 
   .hero-scroll-hint { display: none; }
 
@@ -910,6 +847,28 @@ footer {
 }
 
 /* Mobile kecil */
-@media (max-width: 768px) {
+@media (max-width: 480px) {
+  #main-navbar { padding: 14px 5%; }
+  .brand-name  { font-size: 1rem; }
+  .brand-date  { display: none; }
 
+  .hero-content { padding: 88px 5% 90px; }
+  .hero-title   { letter-spacing: -1px; }
+  .hero-desc    { font-size: 0.95rem; }
+
+  .section        { padding: 52px 5%; }
+  .section-heading{ letter-spacing: -0.5px; }
+
+  .kat-card    { padding: 30px 22px; }
+  .kat-icon-wrap{ width: 56px; height: 56px; font-size: 1.3rem; margin-bottom: 20px; }
+
+  .pillar { padding: 18px; }
+
+  .about-badge { padding: 16px 18px; bottom: -16px; left: -12px; }
+  .about-badge strong { font-size: 1.6rem; }
+
+  .produk-img-wrap img { height: 170px; }
+  .produk-body { padding: 16px 16px 20px; }
+
+  .drawer-actions { flex-direction: column; }
 }
