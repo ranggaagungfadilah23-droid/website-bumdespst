@@ -70,22 +70,19 @@
 </button>
 
 <script>
-    const toggle   = document.getElementById('sidebarToggle');
-    const close    = document.getElementById('sidebarClose');
-    const sidebar  = document.getElementById('sidebar');
-    const overlay  = document.getElementById('sidebarOverlay');
+const toggle  = document.getElementById('sidebarToggle');
+const sidebar = document.getElementById('app-sidebar');     // fix id
+const overlay = document.getElementById('sidebarOverlay');
 
-    function openSidebar() {
-        sidebar.classList.remove('-translate-x-full');
-        overlay.classList.remove('hidden');
-    }
+function openSidebar() {
+    sidebar.classList.remove('-translate-x-full');
+    overlay.classList.remove('hidden');
+}
+function closeSidebar() {
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.add('hidden');
+}
 
-    function closeSidebar() {
-        sidebar.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
-    }
-
-    toggle.addEventListener('click', openSidebar);
-    close.addEventListener('click', closeSidebar);
-    overlay.addEventListener('click', closeSidebar);
+toggle.addEventListener('click', openSidebar);
+overlay.addEventListener('click', closeSidebar);
 </script>
