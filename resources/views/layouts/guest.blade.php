@@ -172,7 +172,17 @@
 
         .footer-text, .card-footer { text-align: center; margin-top: 1.5rem; font-size: 14px; color: rgba(255,255,255,0.4); }
         .footer-text a, .card-footer a { color: #38bdf8 !important; text-decoration: none; font-weight: 700; }
+/* Menghilangkan ikon mata bawaan browser */
+input::-ms-reveal,
+input::-ms-clear {
+    display: none;
+}
 
+input::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    position: absolute;
+    right: 0;
+}
         @media (max-width: 992px) {
             .page-wrap { grid-template-columns: 1fr; padding: 2rem; }
             .brand-col { display: none; }
