@@ -314,7 +314,7 @@
                 <p style="font-size:0.72rem;color:#8899b0;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;">Bergabung</p>
                 <div class="footer-links">
                     <a href="{{ route('register.mitra') }}">Daftar sebagai Mitra</a><br>
-                    <a href="{{ route('register') }}">Daftar sebagai Pelanggan</a>
+                    <a href="{{ route('register.pelanggan') }}">Daftar sebagai Pelanggan</a>
                 </div>
             </div>
         </div>
