@@ -69,6 +69,25 @@
     }
     .wa-wrap:focus-within { border-color: #8a9a5b; box-shadow: 0 0 0 3px rgba(138,154,91,0.25); }
 
+    /* Username prefix */
+    .user-wrap {
+        display: flex; align-items: stretch;
+        background: #fdf7e3; border: 1.5px solid #1a1a1a; border-radius: 8px; overflow: hidden;
+    }
+    .user-prefix {
+        padding: 9px 10px; font-size: 13px; font-weight: 800; color: #333;
+        border-right: 1.5px solid #1a1a1a; background: #f0e8c8;
+        display: flex; align-items: center;
+    }
+    .user-input {
+        flex: 1; min-width: 0; border: none; outline: none; background: #fdf7e3;
+        padding: 9px 12px; font-size: 13px; font-weight: 600; color: #333; font-family: inherit;
+    }
+    .user-wrap:focus-within { border-color: #8a9a5b; box-shadow: 0 0 0 3px rgba(138,154,91,0.25); }
+
+    /* Hint text */
+    .hint { display: block; font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 1px; }
+
     /* Password wrapper */
     .pw { position: relative; }
     .pw .ic { padding-right: 36px; }
@@ -105,7 +124,7 @@
 <h1 class="reg-title">Daftar Pelanggan</h1>
 <p class="reg-subtitle">Lengkapi data diri Anda untuk mulai berbelanja di BUMDes Patimban.</p>
 
-{{-- ✅ TAMBAHAN: Tombol Login Google dengan parameter role=customer --}}
+{{-- Tombol Login Google dengan parameter role=customer --}}
 <a href="{{ route('auth.google.redirect', ['role' => 'customer']) }}" class="btn-google">
     <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="16" alt="G">
     Daftar dengan Google
@@ -127,16 +146,20 @@
             @error('name') <span class="err">{{ $message }}</span> @enderror
         </div>
 
-        <div class="fg">
-    <label class="lbl">Username</label>
-    <input type="text" name="username" class="ic" placeholder="contoh: pelanggan_abc"
-           value="{{ old('username') }}" pattern="^[a-zA-Z0-9_]{3,20}$" 
-           title="3-20 karakter, huruf/angka/underscore" required>
-    @error('username') <span class="err">{{ $message }}</span> @enderror
-</div>
+        {{-- Username --}}
+        <div class="fg span2">
+            <label class="lbl">Username</label>
+            <div class="user-wrap">
+                <span class="user-prefix">@</span>
+                <input type="text" name="username" class="user-input" placeholder="username_anda"
+                       value="{{ old('username') }}" pattern="^[a-zA-Z0-9_]{3,20}$" required>
+            </div>
+            <span class="hint">3-20 karakter • huruf, angka, dan underscore (_) saja, tanpa spasi</span>
+            @error('username') <span class="err">{{ $message }}</span> @enderror
+        </div>
 
         {{-- Email --}}
-        <div class="fg">
+        <div class="fg span2">
             <label class="lbl">Email</label>
             <input type="email" name="email" class="ic" placeholder="email@contoh.com"
                    value="{{ session('google_email') ?? old('email') }}"
@@ -145,7 +168,7 @@
         </div>
 
         {{-- No WA --}}
-        <div class="fg">
+        <div class="fg span2">
             <label class="lbl">Nomor WhatsApp</label>
             <div class="wa-wrap">
                 <span class="wa-prefix">+62</span>
