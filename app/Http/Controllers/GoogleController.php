@@ -97,10 +97,11 @@ class GoogleController extends Controller
     /**
      * Store Data Registrasi Mitra
      */
-    public function storeMitra(Request $request)
+  public function storeMitra(Request $request)
 {
     $request->validate([
-        'email'       => 'required|email|unique:users',
+        'username'    => 'required|string|min:3|max:20|alpha_dash|unique:users,username', // Tambahkan ini
+        'email'       => 'required|email|unique:users,email',
         'password'    => 'required|min:8|confirmed',
         'sku'         => 'required|file|mimes:jpg,png,pdf|max:5120',
         'syarat'      => 'accepted',
@@ -134,9 +135,9 @@ class GoogleController extends Controller
 );
             $skuUrl = $result['secure_url'];
         }
-
-        $user = User::create([
+$user = User::create([
             'name'     => $request->nama_pemilik,
+            'username' => $request->username, // Tambahkan ini
             'email'    => $request->email,
             'no_hp'    => $request->no_hp,
             'password' => Hash::make($request->password),
@@ -148,6 +149,7 @@ class GoogleController extends Controller
             'user_id'      => $user->id,
             'nama_usaha'   => $request->nama_usaha,
             'nama_pemilik' => $request->nama_pemilik,
+            'username'     => $request->username, // Tambahkan ini
             'jenis_usaha'  => $request->jenis_usaha,
             'nik'          => $request->nik,
             'alamat_usaha' => $request->alamat_usaha,
@@ -162,11 +164,11 @@ class GoogleController extends Controller
 
         // ✅ Log daftar mitra
 \App\Models\ActivityLog::create([
-    'user_name' => $user->name,
-    'action'    => 'Daftar',
-    'details'   => 'Mitra baru mendaftar: ' . $user->name . ' — Usaha: ' . $request->nama_usaha,
-]);
-
+            'user_name' => $user->name,
+            'action'    => 'Daftar',
+            'details'   => "Mitra baru mendaftar: {$user->name} (@{$user->username}) — Usaha: {$request->nama_usaha}",
+        ]);
+        
         return redirect()->route('mitra.menunggu')->with('success', 'Pendaftaran berhasil! Silakan verifikasi email Anda.');
     });
 }

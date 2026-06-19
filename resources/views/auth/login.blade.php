@@ -1,13 +1,13 @@
 <x-guest-layout :centered="true">
 
-    {{-- Status session (misal: setelah reset password) --}}
+    {{-- Status session --}}
     <x-auth-session-status class="status-success" :status="session('status')" />
 
-    {{-- Error validasi dengan terjemahan bahasa Indonesia --}}
+    {{-- Error validasi --}}
     @if ($errors->any())
         <div class="status-error">
             <i class="fas fa-circle-exclamation" style="margin-right:6px;"></i>
-            @if ($errors->first() == 'These credentials do not match our records.')
+            @if ($errors->first('login') == 'These credentials do not match our records.')
                 Email atau kata sandi yang Anda masukkan salah.
             @else
                 {{ $errors->first() }}
@@ -22,24 +22,26 @@
              alt="Logo BUMDes">
     </div>
 
-    {{-- Judul --}}
+    {{-- Judul & Subjudul --}}
     <h2 class="card-title">Masuk ke Akun</h2>
-    <p class="card-sub">Selamat datang kembali di platform BUMDes</p>
+    <p class="card-sub" style="margin-bottom: 20px;">
+        Gunakan email atau username Anda untuk masuk.
+    </p>
 
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
-        {{-- Email --}}
+        {{-- Email atau Username --}}
         <div class="field-group">
-            <label class="field-label" for="email">Alamat Email</label>
+            <label class="field-label" for="login">Email atau Username</label>
             <div class="field-inner">
-                <i class="fas fa-envelope field-icon"></i>
-                <input id="email"
+                <i class="fas fa-user field-icon"></i>
+                <input id="login"
                        class="field-input"
-                       type="email"
-                       name="email"
-                       placeholder="nama@email.com"
-                       value="{{ old('email') }}"
+                       type="text"
+                       name="login"
+                       placeholder="email@contoh.com atau username"
+                       value="{{ old('login') }}"
                        required autofocus autocomplete="username">
             </div>
         </div>
@@ -81,7 +83,7 @@
             <div class="divider-line"></div>
         </div>
 
-        {{-- Login Google (Perbaikan URL) --}}
+        {{-- Login Google --}}
         <a href="{{ url('/auth/google') }}" class="btn-google">
             <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google">
             <span>Lanjutkan dengan Google</span>
