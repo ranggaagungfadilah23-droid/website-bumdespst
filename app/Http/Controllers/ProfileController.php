@@ -33,6 +33,7 @@ class ProfileController extends Controller
         // 1. Siapkan Aturan Validasi Dasar (Untuk Semua Role)
         $rules = [
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'min:3', 'max:20', 'alpha_dash', Rule::unique('users')->ignore($user->id)],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             // Aturan pintar: Sandi lama HANYA wajib jika tidak bawa token reset email
             'current_password' => [$isReset ? 'nullable' : 'required_with:password', 'nullable', 'current_password'],
@@ -52,11 +53,13 @@ class ProfileController extends Controller
             'current_password.current_password' => 'Sandi lama yang Anda masukkan salah.',
             'password.confirmed' => 'Konfirmasi sandi baru tidak cocok.',
             'password.min' => 'Sandi baru minimal 8 karakter.',
-            'email.unique' => 'Email ini sudah digunakan oleh akun lain.'
+            'email.unique' => 'Email ini sudah digunakan oleh akun lain.',
+            'username.unique' => 'Username ini sudah digunakan.'
         ]);
 
         // 3. Update Data Utama (Tabel users)
         $user->name = $request->name;
+        $user->username = $request->username;
         $user->email = $request->email;
 
         // Update Password JIKA diisi

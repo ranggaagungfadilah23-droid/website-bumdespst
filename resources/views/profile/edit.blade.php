@@ -29,6 +29,7 @@
                     <h3 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4">Informasi Dasar</h3>
                 </div>
 
+                {{-- Nama Lengkap --}}
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Nama Lengkap</label>
                     <input type="text" name="name" value="{{ old('name', $user->name) }}"
@@ -36,6 +37,18 @@
                     @error('name') <p class="text-rose-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                {{-- Username --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Username</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3.5 text-slate-400 text-sm font-bold">@</span>
+                        <input type="text" name="username" value="{{ old('username', $user->username) }}"
+                               class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pl-9 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition @error('username') border-rose-500 @enderror">
+                    </div>
+                    @error('username') <p class="text-rose-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                {{-- Alamat Email --}}
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Alamat Email</label>
                     <input type="email" name="email" value="{{ old('email', $user->email) }}"
@@ -76,23 +89,19 @@
                     <h3 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4">Ubah Kata Sandi</h3>
                 </div>
 
-                {{-- LOGIKA SMART: Tampilkan peringatan jika lewat email reset, hilangkan kolom sandi lama --}}
                 @if(request()->has('is_reset'))
                     <input type="hidden" name="token" value="{{ request('token') }}">
                     <input type="hidden" name="is_reset" value="1">
-
                     <div class="md:col-span-2">
                         <div class="p-4 bg-blue-50 border border-blue-200 rounded-2xl text-blue-700 text-xs mb-2">
                             <i class="fas fa-info-circle mr-1"></i> Anda masuk melalui link verifikasi email. Silakan langsung buat <strong>Sandi Baru</strong> Anda.
                         </div>
                     </div>
                 @else
-                    {{-- Tampilan Normal: Wajib sandi lama --}}
                     <div class="md:col-span-2">
                         <p class="text-xs text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-100 mb-4">
-                            <i class="fas fa-lock mr-1"></i> Untuk alasan keamanan, Anda wajib memasukkan <strong>Sandi Saat Ini</strong> jika ingin membuat sandi baru.
+                            <i class="fas fa-lock mr-1"></i> Untuk keamanan, masukkan <strong>Sandi Saat Ini</strong> jika ingin membuat sandi baru.
                         </p>
-
                         <div class="flex justify-between items-center mb-2">
                             <label class="block text-xs font-bold text-slate-500 uppercase">Sandi Saat Ini (Lama)</label>
                             <button type="submit" form="form-reset-sandi" class="text-xs font-bold text-blue-600 hover:text-blue-800 transition bg-transparent border-none cursor-pointer p-0">
@@ -121,17 +130,12 @@
             </div>
 
             <div class="mt-8 pt-6 border-t border-slate-100 flex justify-end gap-3">
-                <button type="reset" class="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
-                    Batal
-                </button>
-                <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition">
-                    Simpan Perubahan
-                </button>
+                <button type="reset" class="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">Batal</button>
+                <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition">Simpan Perubahan</button>
             </div>
         </form>
     </div>
 
-    {{-- FORM KEDUA (Tersembunyi) --}}
     <form id="form-reset-sandi" action="{{ route('profile.send-reset-link') }}" method="POST" class="hidden">
         @csrf
     </form>
