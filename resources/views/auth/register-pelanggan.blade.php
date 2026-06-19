@@ -127,6 +127,14 @@
             @error('name') <span class="err">{{ $message }}</span> @enderror
         </div>
 
+        <div class="fg">
+    <label class="lbl">Username</label>
+    <input type="text" name="username" class="ic" placeholder="contoh: budi_bumdes"
+           value="{{ old('username') }}" pattern="^[a-zA-Z0-9_]{3,20}$" 
+           title="3-20 karakter, huruf/angka/underscore" required>
+    @error('username') <span class="err">{{ $message }}</span> @enderror
+</div>
+
         {{-- Email --}}
         <div class="fg">
             <label class="lbl">Email</label>

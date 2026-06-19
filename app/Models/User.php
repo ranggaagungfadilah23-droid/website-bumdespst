@@ -13,14 +13,15 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasFactory, Notifiable, HasPushSubscriptions;
 
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'google_id',
-        'role',
-        'status',
-        'no_hp',
-    ];
+    'name',
+    'username',
+    'email',
+    'password',
+    'google_id',
+    'role',
+    'status',
+    'no_hp',
+];
 
     protected $hidden = [
         'password',

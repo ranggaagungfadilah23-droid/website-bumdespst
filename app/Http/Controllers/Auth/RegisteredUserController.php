@@ -27,11 +27,12 @@ class RegisteredUserController extends Controller
     /**
      * Proses simpan data registrasi KHUSUS PELANGGAN.
      */
-   public function store(Request $request): RedirectResponse
+  public function store(Request $request): RedirectResponse
     {
         // 1. Validasi Input Khusus Pelanggan
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
++           'username' => ['required', 'string', 'min:3', 'max:20', 'alpha_dash', 'unique:'.User::class],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
             'no_wa' => ['required', 'string', 'max:20', 'starts_with:62'],
@@ -44,12 +45,13 @@ class RegisteredUserController extends Controller
         // 2. Simpan Akun ke Tabel 'users'
         $user = User::create([
             'name' => $request->name,
++           'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'customer',
             'status' => 'active',
         ]);
-
+        
         // 3. Simpan Profil ke Tabel 'pelanggans'
         \App\Models\Pelanggan::create([
             'user_id' => $user->id,
