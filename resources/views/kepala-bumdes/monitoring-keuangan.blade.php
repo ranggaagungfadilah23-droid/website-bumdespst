@@ -1,34 +1,37 @@
 @extends('theme.default')
 @section('title', 'Monitoring Keuangan - BUMDes Patimban')
 @section('content')
-<div class="min-h-screen bg-slate-50 p-6 md:p-10 space-y-8">
+<div class="min-h-screen bg-slate-50 p-3 sm:p-6 md:p-10 space-y-4 sm:space-y-8">
 
     {{-- HEADER --}}
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex flex-col gap-3 sm:gap-4">
         <div>
-            <p class="text-xs font-bold uppercase tracking-widest text-emerald-500 mb-1">BUMDes — Keuangan Operasional</p>
-            <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800 leading-tight">Monitoring Keuangan</h1>
-            <p class="text-slate-400 text-sm mt-1">Pantau arus kas pemasukan & pengeluaran operasional BUMDes</p>
+            <p class="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-emerald-500 mb-1">BUMDes — Keuangan Operasional</p>
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-800 leading-tight">Monitoring Keuangan</h1>
+            <p class="text-slate-400 text-xs sm:text-sm mt-1">Pantau arus kas pemasukan & pengeluaran operasional BUMDes</p>
         </div>
-        <div class="flex flex-wrap items-center gap-3">
+
+        <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
             {{-- Tombol Aksi Input Data --}}
-            <button type="button" onclick="openModal('modalSaldoAwal')" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2.5 rounded-xl shadow transition active:scale-95">
-                <i class="fas fa-coins"></i> Input Saldo Awal
-            </button>
-            <button type="button" onclick="openModal('modalPengeluaran')" class="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white text-sm font-bold px-4 py-2.5 rounded-xl shadow transition active:scale-95">
-                <i class="fas fa-file-invoice-dollar"></i> Catat Pengeluaran
-            </button>
+            <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3">
+                <button type="button" onclick="openModal('modalSaldoAwal')" class="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl shadow transition active:scale-95">
+                    <i class="fas fa-coins"></i> <span class="truncate">Saldo Awal</span>
+                </button>
+                <button type="button" onclick="openModal('modalPengeluaran')" class="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-red-500 hover:bg-red-600 text-white text-xs sm:text-sm font-bold px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl shadow transition active:scale-95">
+                    <i class="fas fa-file-invoice-dollar"></i> <span class="truncate">Pengeluaran</span>
+                </button>
+            </div>
 
             {{-- Filter Bulan & Tahun --}}
-            <form method="GET" action="" class="flex items-center gap-2">
+            <form method="GET" action="" class="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2">
                 <select name="bulan" onchange="this.form.submit()"
-                    class="text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-700 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                    class="text-xs sm:text-sm border border-slate-200 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-2 bg-white text-slate-700 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
                     @foreach(['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'] as $i => $bln)
                         <option value="{{ $i+1 }}" {{ $bulanAktif == ($i+1) ? 'selected' : '' }}>{{ $bln }}</option>
                     @endforeach
                 </select>
                 <select name="tahun" onchange="this.form.submit()"
-                    class="text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-700 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                    class="text-xs sm:text-sm border border-slate-200 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-2 bg-white text-slate-700 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
                     @for($y = date('Y'); $y >= date('Y') - 4; $y--)
                         <option value="{{ $y }}" {{ $tahunAktif == $y ? 'selected' : '' }}>{{ $y }}</option>
                     @endfor
@@ -39,84 +42,88 @@
 
     {{-- ALERT NOTIFIKASI --}}
     @if(session('success'))
-        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-semibold flex items-center gap-2">
+        <div class="p-3 sm:p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2">
             <i class="fas fa-check-circle"></i> {{ session('success') }}
         </div>
     @endif
 
-    {{-- KARTU RINGKASAN --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    {{-- KARTU RINGKASAN — 2 kolom di mobile --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         {{-- Saldo Akhir --}}
-        <div class="lg:col-span-1 bg-gradient-to-br {{ $saldoAkhir >= 0 ? 'from-emerald-600 to-emerald-800' : 'from-red-500 to-red-700' }} text-white p-6 rounded-2xl shadow-lg {{ $saldoAkhir >= 0 ? 'shadow-emerald-500/20' : 'shadow-red-500/20' }}">
-            <div class="flex items-center justify-between mb-4">
-                <p class="text-white/80 text-xs font-bold uppercase tracking-wider">Saldo Akhir</p>
-                <div class="bg-white/20 p-2 rounded-xl"><i class="fas fa-wallet text-white text-sm"></i></div>
+        <div class="col-span-2 lg:col-span-1 bg-gradient-to-br {{ $saldoAkhir >= 0 ? 'from-emerald-600 to-emerald-800' : 'from-red-500 to-red-700' }} text-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg {{ $saldoAkhir >= 0 ? 'shadow-emerald-500/20' : 'shadow-red-500/20' }}">
+            <div class="flex items-center justify-between mb-2 sm:mb-4">
+                <p class="text-white/80 text-[10px] sm:text-xs font-bold uppercase tracking-wider">Saldo Akhir</p>
+                <div class="bg-white/20 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shrink-0"><i class="fas fa-wallet text-white text-xs sm:text-sm"></i></div>
             </div>
-            <h3 class="text-2xl font-black font-mono">Rp {{ number_format(abs($saldoAkhir), 0, ',', '.') }}</h3>
-            <p class="text-white/70 text-xs mt-2">{{ $saldoAkhir >= 0 ? 'Surplus bulan ini' : 'Defisit bulan ini' }}</p>
+            <h3 class="text-xl sm:text-2xl font-black font-mono">Rp {{ number_format(abs($saldoAkhir), 0, ',', '.') }}</h3>
+            <p class="text-white/70 text-[10px] sm:text-xs mt-1 sm:mt-2">{{ $saldoAkhir >= 0 ? 'Surplus bulan ini' : 'Defisit bulan ini' }}</p>
         </div>
 
         {{-- Total Pemasukan --}}
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
-                <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Pemasukan</p>
-                <div class="bg-blue-50 p-2 rounded-xl"><i class="fas fa-arrow-down text-blue-500 text-sm"></i></div>
+        <div class="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between mb-2 sm:mb-4">
+                <p class="text-slate-400 text-[9px] sm:text-xs font-bold uppercase tracking-wider">Pemasukan</p>
+                <div class="bg-blue-50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shrink-0"><i class="fas fa-arrow-down text-blue-500 text-xs sm:text-sm"></i></div>
             </div>
-            <h3 class="text-2xl font-black font-mono text-slate-800">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</h3>
-            <p class="text-slate-400 text-xs mt-2">{{ $jumlahTransaksiMasuk }} transaksi masuk</p>
+            <h3 class="text-base sm:text-2xl font-black font-mono text-slate-800 truncate">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</h3>
+            <p class="text-slate-400 text-[9px] sm:text-xs mt-1 sm:mt-2">{{ $jumlahTransaksiMasuk }} transaksi</p>
         </div>
 
         {{-- Total Pengeluaran --}}
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
-                <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Pengeluaran</p>
-                <div class="bg-red-50 p-2 rounded-xl"><i class="fas fa-arrow-up text-red-400 text-sm"></i></div>
+        <div class="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between mb-2 sm:mb-4">
+                <p class="text-slate-400 text-[9px] sm:text-xs font-bold uppercase tracking-wider">Pengeluaran</p>
+                <div class="bg-red-50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shrink-0"><i class="fas fa-arrow-up text-red-400 text-xs sm:text-sm"></i></div>
             </div>
-            <h3 class="text-2xl font-black font-mono text-slate-800">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h3>
-            <p class="text-slate-400 text-xs mt-2">{{ $jumlahTransaksiKeluar }} transaksi keluar</p>
+            <h3 class="text-base sm:text-2xl font-black font-mono text-slate-800 truncate">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h3>
+            <p class="text-slate-400 text-[9px] sm:text-xs mt-1 sm:mt-2">{{ $jumlahTransaksiKeluar }} transaksi</p>
         </div>
 
         {{-- Saldo Awal --}}
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
-                <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Saldo Awal</p>
-                <div class="bg-slate-100 p-2 rounded-xl"><i class="fas fa-coins text-slate-400 text-sm"></i></div>
+        <div class="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between mb-2 sm:mb-4">
+                <p class="text-slate-400 text-[9px] sm:text-xs font-bold uppercase tracking-wider">Saldo Awal</p>
+                <div class="bg-slate-100 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shrink-0"><i class="fas fa-coins text-slate-400 text-xs sm:text-sm"></i></div>
             </div>
-            <h3 class="text-2xl font-black font-mono text-slate-800">Rp {{ number_format($saldoAwal, 0, ',', '.') }}</h3>
-            <p class="text-slate-400 text-xs mt-2">Per awal {{ $namaBulan }}</p>
+            <h3 class="text-base sm:text-2xl font-black font-mono text-slate-800 truncate">Rp {{ number_format($saldoAwal, 0, ',', '.') }}</h3>
+            <p class="text-slate-400 text-[9px] sm:text-xs mt-1 sm:mt-2 truncate">Per awal {{ $namaBulan }}</p>
         </div>
     </div>
 
     {{-- GRAFIK --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         {{-- Grafik Arus Kas Harian --}}
-        <div class="md:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-            <h3 class="text-base font-bold text-slate-700 mb-1">Arus Kas Harian</h3>
-            <p class="text-slate-400 text-xs mb-5">Pemasukan vs pengeluaran — {{ $namaBulan }} {{ $tahunAktif }}</p>
-            <canvas id="grafikArusKas" height="110"></canvas>
+        <div class="md:col-span-2 bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-100">
+            <h3 class="text-sm sm:text-base font-bold text-slate-700 mb-1">Arus Kas Harian</h3>
+            <p class="text-slate-400 text-[10px] sm:text-xs mb-3 sm:mb-5">Pemasukan vs pengeluaran — {{ $namaBulan }} {{ $tahunAktif }}</p>
+            <div class="relative h-44 sm:h-64">
+                <canvas id="grafikArusKas"></canvas>
+            </div>
         </div>
 
         {{-- Grafik Donut Kategori --}}
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-            <h3 class="text-base font-bold text-slate-700 mb-1">Pengeluaran per Kategori</h3>
-            <p class="text-slate-400 text-xs mb-5">{{ $namaBulan }} {{ $tahunAktif }}</p>
+        <div class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-100">
+            <h3 class="text-sm sm:text-base font-bold text-slate-700 mb-1">Pengeluaran per Kategori</h3>
+            <p class="text-slate-400 text-[10px] sm:text-xs mb-3 sm:mb-5">{{ $namaBulan }} {{ $tahunAktif }}</p>
             @if(count($kategoriPengeluaran) > 0)
-            <canvas id="grafikKategori" class="mb-4"></canvas>
-            <div class="space-y-2 mt-4">
+            <div class="relative h-36 sm:h-48 mb-3 sm:mb-4">
+                <canvas id="grafikKategori"></canvas>
+            </div>
+            <div class="space-y-2 mt-3 sm:mt-4">
                 @foreach($kategoriPengeluaran as $i => $kat)
                 @php $warna = ['#ef4444','#f59e0b','#8b5cf6','#3b82f6','#10b981','#f97316','#06b6d4']; @endphp
-                <div class="flex items-center justify-between text-xs">
-                    <div class="flex items-center gap-2">
+                <div class="flex items-center justify-between text-[11px] sm:text-xs">
+                    <div class="flex items-center gap-2 min-w-0">
                         <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background: {{ $warna[$i % count($warna)] }}"></span>
-                        <span class="text-slate-600 font-medium">{{ $kat['kategori'] }}</span>
+                        <span class="text-slate-600 font-medium truncate">{{ $kat['kategori'] }}</span>
                     </div>
-                    <span class="font-bold text-slate-700">Rp {{ number_format($kat['total'], 0, ',', '.') }}</span>
+                    <span class="font-bold text-slate-700 shrink-0">Rp {{ number_format($kat['total'], 0, ',', '.') }}</span>
                 </div>
                 @endforeach
             </div>
             @else
-            <div class="text-center py-10 text-slate-300">
-                <i class="fas fa-chart-pie text-4xl mb-2 block"></i>
+            <div class="text-center py-8 sm:py-10 text-slate-300">
+                <i class="fas fa-chart-pie text-3xl sm:text-4xl mb-2 block"></i>
                 <p class="text-xs">Belum ada data</p>
             </div>
             @endif
@@ -124,24 +131,25 @@
     </div>
 
     {{-- TABS: PEMASUKAN & PENGELUARAN --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         {{-- Tab Header --}}
         <div class="flex border-b border-slate-100">
             <button onclick="switchTab('pemasukan')" id="tab-pemasukan"
-                class="flex-1 px-6 py-4 text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50/40 transition">
-                <i class="fas fa-arrow-circle-down mr-2"></i>Pemasukan
-                <span class="ml-2 bg-blue-100 text-blue-700 text-xs font-black px-2 py-0.5 rounded-full">{{ $jumlahTransaksiMasuk }}</span>
+                class="flex-1 px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50/40 transition">
+                <i class="fas fa-arrow-circle-down mr-1 sm:mr-2"></i>Pemasukan
+                <span class="ml-1 sm:ml-2 bg-blue-100 text-blue-700 text-[10px] sm:text-xs font-black px-1.5 sm:px-2 py-0.5 rounded-full">{{ $jumlahTransaksiMasuk }}</span>
             </button>
             <button onclick="switchTab('pengeluaran')" id="tab-pengeluaran"
-                class="flex-1 px-6 py-4 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition">
-                <i class="fas fa-arrow-circle-up mr-2"></i>Pengeluaran
-                <span class="ml-2 bg-slate-100 text-slate-500 text-xs font-black px-2 py-0.5 rounded-full">{{ $jumlahTransaksiKeluar }}</span>
+                class="flex-1 px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition">
+                <i class="fas fa-arrow-circle-up mr-1 sm:mr-2"></i>Pengeluaran
+                <span class="ml-1 sm:ml-2 bg-slate-100 text-slate-500 text-[10px] sm:text-xs font-black px-1.5 sm:px-2 py-0.5 rounded-full">{{ $jumlahTransaksiKeluar }}</span>
             </button>
         </div>
 
         {{-- Tab Pemasukan --}}
         <div id="panel-pemasukan">
-            <div class="overflow-x-auto">
+            {{-- Tablet ke atas: tabel --}}
+            <div class="hidden md:block overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="bg-slate-50">
@@ -188,11 +196,44 @@
                     @endif
                 </table>
             </div>
+
+            {{-- Mobile: list ringkas --}}
+            <div class="md:hidden divide-y divide-slate-50">
+                @forelse($dataPemasukan as $item)
+                <div class="px-4 py-3">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <p class="text-slate-700 font-semibold text-sm truncate">{{ $item->keterangan }}</p>
+                            <p class="text-slate-400 text-[10px] mt-0.5">{{ \Carbon\Carbon::parse($item->tanggal)->isoFormat('D MMM YYYY') }}</p>
+                        </div>
+                        <span class="shrink-0 bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                            {{ $item->sumber ?? 'Bagi Hasil' }}
+                        </span>
+                    </div>
+                    <p class="text-right font-black font-mono text-blue-700 text-sm mt-1.5">
+                        + Rp {{ number_format($item->jumlah, 0, ',', '.') }}
+                    </p>
+                </div>
+                @empty
+                <div class="px-6 py-12 text-center text-slate-300 text-sm">
+                    <i class="fas fa-inbox text-3xl mb-2 block"></i>
+                    Tidak ada pemasukan pada bulan ini
+                </div>
+                @endforelse
+
+                @if(count($dataPemasukan) > 0)
+                <div class="px-4 py-3 bg-blue-50 flex items-center justify-between">
+                    <span class="font-extrabold text-blue-700 text-xs">TOTAL PEMASUKAN</span>
+                    <span class="font-black font-mono text-blue-700 text-sm">+ Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</span>
+                </div>
+                @endif
+            </div>
         </div>
 
-        {{-- Tab Pengeluaran (SUDAH DISESUAIKAN DENGAN LAYOUT DATA RIIL DAN TOMBOL HAPUS) --}}
+        {{-- Tab Pengeluaran --}}
         <div id="panel-pengeluaran" class="hidden">
-            <div class="overflow-x-auto">
+            {{-- Tablet ke atas: tabel --}}
+            <div class="hidden md:block overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="bg-slate-50">
@@ -260,32 +301,83 @@
                     @endif
                 </table>
             </div>
+
+            {{-- Mobile: list ringkas + tombol hapus --}}
+            <div class="md:hidden divide-y divide-slate-50">
+                @forelse($dataPengeluaran as $item)
+                @php
+                    $catColors = [
+                        'Operasional' => 'bg-amber-50 text-amber-600',
+                        'Gaji' => 'bg-purple-50 text-purple-600',
+                        'Pembelian' => 'bg-blue-50 text-blue-600',
+                        'Lain-lain' => 'bg-slate-100 text-slate-500',
+                    ];
+                    $cat = $item->kategori ?? 'Lain-lain';
+                    $catClass = $catColors[$cat] ?? 'bg-slate-100 text-slate-500';
+                @endphp
+                <div class="px-4 py-3">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <p class="text-slate-700 font-semibold text-sm truncate">{{ $item->keterangan }}</p>
+                            <p class="text-slate-400 text-[10px] mt-0.5">{{ \Carbon\Carbon::parse($item->tanggal)->isoFormat('D MMM YYYY') }}</p>
+                        </div>
+                        <span class="{{ $catClass }} shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                            {{ $cat }}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between mt-1.5">
+                        <p class="font-black font-mono text-red-500 text-sm">
+                            - Rp {{ number_format($item->jumlah, 0, ',', '.') }}
+                        </p>
+                        <form action="{{ route('kepala-bumdes.hapus-pengeluaran', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus catatan rekap pengeluaran operasional ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="bg-red-50 hover:bg-red-100 text-red-500 text-[11px] font-bold px-2.5 py-1 rounded-lg transition active:scale-95">
+                                <i class="fas fa-trash-alt mr-1"></i> Hapus
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @empty
+                <div class="px-6 py-12 text-center text-slate-300 text-sm">
+                    <i class="fas fa-inbox text-3xl mb-2 block"></i>
+                    Tidak ada pengeluaran pada bulan ini
+                </div>
+                @endforelse
+
+                @if(count($dataPengeluaran) > 0)
+                <div class="px-4 py-3 bg-red-50 flex items-center justify-between">
+                    <span class="font-extrabold text-red-600 text-xs">TOTAL PENGELUARAN</span>
+                    <span class="font-black font-mono text-red-600 text-sm">- Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</span>
+                </div>
+                @endif
+            </div>
         </div>
     </div>
 
     {{-- RINGKASAN ARUS KAS --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-        <h3 class="text-base font-bold text-slate-700 mb-5">Ringkasan Arus Kas — {{ $namaBulan }} {{ $tahunAktif }}</h3>
-        <div class="space-y-3">
-            <div class="flex items-center justify-between py-3 border-b border-slate-100">
-                <span class="text-sm text-slate-500 font-medium">Saldo Awal Bulan</span>
-                <span class="font-black font-mono text-slate-700">Rp {{ number_format($saldoAwal, 0, ',', '.') }}</span>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6">
+        <h3 class="text-sm sm:text-base font-bold text-slate-700 mb-3 sm:mb-5">Ringkasan Arus Kas — {{ $namaBulan }} {{ $tahunAktif }}</h3>
+        <div class="space-y-2 sm:space-y-3">
+            <div class="flex items-center justify-between py-2.5 sm:py-3 border-b border-slate-100">
+                <span class="text-xs sm:text-sm text-slate-500 font-medium">Saldo Awal Bulan</span>
+                <span class="font-black font-mono text-slate-700 text-sm sm:text-base">Rp {{ number_format($saldoAwal, 0, ',', '.') }}</span>
             </div>
-            <div class="flex items-center justify-between py-3 border-b border-slate-100">
-                <span class="text-sm text-blue-600 font-semibold">
-                    <i class="fas fa-plus-circle mr-2"></i>Total Pemasukan
+            <div class="flex items-center justify-between py-2.5 sm:py-3 border-b border-slate-100">
+                <span class="text-xs sm:text-sm text-blue-600 font-semibold">
+                    <i class="fas fa-plus-circle mr-1.5 sm:mr-2"></i>Total Pemasukan
                 </span>
-                <span class="font-black font-mono text-blue-700">+ Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</span>
+                <span class="font-black font-mono text-blue-700 text-sm sm:text-base">+ Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</span>
             </div>
-            <div class="flex items-center justify-between py-3 border-b border-slate-100">
-                <span class="text-sm text-red-500 font-semibold">
-                    <i class="fas fa-minus-circle mr-2"></i>Total Pengeluaran
+            <div class="flex items-center justify-between py-2.5 sm:py-3 border-b border-slate-100">
+                <span class="text-xs sm:text-sm text-red-500 font-semibold">
+                    <i class="fas fa-minus-circle mr-1.5 sm:mr-2"></i>Total Pengeluaran
                 </span>
-                <span class="font-black font-mono text-red-500">- Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</span>
+                <span class="font-black font-mono text-red-500 text-sm sm:text-base">- Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</span>
             </div>
-            <div class="flex items-center justify-between py-4 bg-slate-50 rounded-xl px-4 mt-2">
-                <span class="text-base font-extrabold text-slate-800">Saldo Akhir Bulan</span>
-                <span class="text-xl font-black font-mono {{ $saldoAkhir >= 0 ? 'text-emerald-600' : 'text-red-600' }}">
+            <div class="flex items-center justify-between py-3 sm:py-4 bg-slate-50 rounded-xl px-3 sm:px-4 mt-2">
+                <span class="text-sm sm:text-base font-extrabold text-slate-800">Saldo Akhir Bulan</span>
+                <span class="text-base sm:text-xl font-black font-mono {{ $saldoAkhir >= 0 ? 'text-emerald-600' : 'text-red-600' }}">
                     Rp {{ number_format($saldoAkhir, 0, ',', '.') }}
                 </span>
             </div>
@@ -298,12 +390,12 @@
 {{-- MODAL 1: INPUT SALDO AWAL --}}
 {{-- ───────────────────────────────────────────────────────────── --}}
 <div id="modalSaldoAwal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden transform transition-all p-6 space-y-4">
+    <div class="bg-white w-full max-w-md rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden transform transition-all p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between border-b pb-3">
-            <h3 class="text-lg font-bold text-slate-800"><i class="fas fa-coins text-blue-500 mr-2"></i>Input Saldo Awal</h3>
+            <h3 class="text-base sm:text-lg font-bold text-slate-800"><i class="fas fa-coins text-blue-500 mr-2"></i>Input Saldo Awal</h3>
             <button type="button" onclick="closeModal('modalSaldoAwal')" class="text-slate-400 hover:text-slate-600 text-xl">&times;</button>
         </div>
-        <form action="{{ route('kepala-bumdes.simpan-saldo-awal') }}" method="POST" class="space-y-4">
+        <form action="{{ route('kepala-bumdes.simpan-saldo-awal') }}" method="POST" class="space-y-3 sm:space-y-4">
             @csrf
             <div class="grid grid-cols-2 gap-3">
                 <div>
@@ -343,14 +435,14 @@
 {{-- MODAL 2: CATAT REKAP PENGELUARAN (MINGGUAN / BULANAN) --}}
 {{-- ───────────────────────────────────────────────────────────── --}}
 <div id="modalPengeluaran" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-lg rounded-3xl shadow-xl overflow-hidden transform transition-all p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white w-full max-w-lg rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden transform transition-all p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between border-b pb-3">
-            <h3 class="text-lg font-bold text-slate-800"><i class="fas fa-file-invoice-dollar text-red-500 mr-2"></i>Catat Pengeluaran Operasional</h3>
+            <h3 class="text-base sm:text-lg font-bold text-slate-800"><i class="fas fa-file-invoice-dollar text-red-500 mr-2"></i>Catat Pengeluaran Operasional</h3>
             <button type="button" onclick="closeModal('modalPengeluaran')" class="text-slate-400 hover:text-slate-600 text-xl">&times;</button>
         </div>
 
         {{-- PEMBUKA TAG FORM --}}
-        <form id="form_rekap_pengeluaran" action="{{ route('kepala-bumdes.simpan-pengeluaran') }}" method="POST" class="space-y-4">
+        <form id="form_rekap_pengeluaran" action="{{ route('kepala-bumdes.simpan-pengeluaran') }}" method="POST" class="space-y-3 sm:space-y-4">
             @csrf
 
             {{-- Tipe Periode Toggle --}}
@@ -440,7 +532,7 @@
             <div class="bg-red-50/60 p-4 rounded-2xl border border-red-100">
                 <label class="text-xs font-bold text-red-500 uppercase tracking-wide block mb-1">Total Pengeluaran (Fix)</label>
                 <input type="hidden" name="total_pengeluaran" id="total_pengeluaran_raw" value="0">
-                <input type="text" id="total_pengeluaran_format" placeholder="Rp 0" class="w-full bg-transparent border-0 text-2xl font-black font-mono text-red-600 p-0 focus:ring-0 outline-none" readonly required>
+                <input type="text" id="total_pengeluaran_format" placeholder="Rp 0" class="w-full bg-transparent border-0 text-xl sm:text-2xl font-black font-mono text-red-600 p-0 focus:ring-0 outline-none" readonly required>
             </div>
 
             {{-- STRUKTUR UTAMA: TOMBOL AKSI HARUS BERADA DI DALAM TAG FORM --}}
@@ -569,11 +661,11 @@ function switchTab(tab) {
     const tabPengeluaran = document.getElementById('tab-pengeluaran');
 
     if (tab === 'pemasukan') {
-        tabPemasukan.className = 'flex-1 px-6 py-4 text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50/40 transition';
-        tabPengeluaran.className = 'flex-1 px-6 py-4 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition';
+        tabPemasukan.className = 'flex-1 px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50/40 transition';
+        tabPengeluaran.className = 'flex-1 px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition';
     } else {
-        tabPengeluaran.className = 'flex-1 px-6 py-4 text-sm font-bold text-red-500 border-b-2 border-red-500 bg-red-50/40 transition';
-        tabPemasukan.className = 'flex-1 px-6 py-4 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition';
+        tabPengeluaran.className = 'flex-1 px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold text-red-500 border-b-2 border-red-500 bg-red-50/40 transition';
+        tabPemasukan.className = 'flex-1 px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition';
     }
 }
 
@@ -605,8 +697,9 @@ new Chart(document.getElementById('grafikArusKas'), {
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
-            legend: { position: 'top', labels: { font: { weight: '700', size: 11 } } },
+            legend: { position: 'top', labels: { font: { weight: '700', size: 10 }, boxWidth: 12 } },
             tooltip: {
                 callbacks: {
                     label: ctx => ' Rp ' + new Intl.NumberFormat('id-ID').format(ctx.raw)
@@ -618,13 +711,14 @@ new Chart(document.getElementById('grafikArusKas'), {
                 beginAtZero: true,
                 ticks: {
                     callback: val => 'Rp ' + new Intl.NumberFormat('id-ID').format(val),
-                    font: { size: 10 }
+                    font: { size: 9 },
+                    maxTicksLimit: 5
                 },
                 grid: { color: '#f1f5f9' }
             },
             x: {
                 grid: { display: false },
-                ticks: { font: { size: 10 } }
+                ticks: { font: { size: 9 } }
             }
         }
     }
@@ -645,6 +739,7 @@ new Chart(document.getElementById('grafikKategori'), {
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
         cutout: '68%',
         plugins: {
             legend: { display: false },
