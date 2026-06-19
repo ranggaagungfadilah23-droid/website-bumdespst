@@ -8,6 +8,7 @@
             color: #fff;
             letter-spacing: -0.3px;
             margin-bottom: 28px;
+            text-align: center;
         }
 
         .btn-auth-action {
