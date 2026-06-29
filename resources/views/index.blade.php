@@ -63,9 +63,6 @@
     <div class="drawer-backdrop" id="drawer-backdrop"></div>
 
 
-    <!-- ===================================================
-         HERO
-         =================================================== -->
     <section class="hero" id="beranda">
         <img
             class="hero-img"
