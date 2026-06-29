@@ -2,7 +2,7 @@
 <header class="app-topbar">
 
     {{-- Hamburger mobile --}}
-    <button class="topbar-hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">
+    <button type="button" class="topbar-hamburger" onclick="toggleSidebar()" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="sidebar">
         <i class="fas fa-bars" style="font-size: 16px;"></i>
     </button>
 
@@ -139,16 +139,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px; height: 32px;
-    border-radius: 6px;
+    width: 40px; height: 40px;
+    border-radius: 8px;
     border: none;
     background: none;
     cursor: pointer;
     color: #656d76;
     transition: background 0.1s, color 0.1s;
     flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
 }
-.topbar-hamburger:hover { background: #f3f4f6; color: #1f2328; }
+.topbar-hamburger:hover,
+.topbar-hamburger:active { background: #f3f4f6; color: #1f2328; }
 @media (min-width: 768px) { .topbar-hamburger { display: none; } }
 
 .topbar-title {

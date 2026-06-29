@@ -1,15 +1,15 @@
 {{-- sidebar-mitra.blade.php --}}
-<aside class="app-sidebar" id="sidebar">
+<aside class="app-sidebar app-sidebar--mitra" id="sidebar" aria-label="Navigasi Mitra">
 
     {{-- Logo --}}
     <div class="sidebar-logo">
-        <div class="sidebar-logo-icon" style="background: #1f6feb;">
+        <div class="sidebar-logo-icon">
             <i class="fas fa-store"></i>
         </div>
-        <span class="sidebar-logo-text">Mitra <span style="color: #58a6ff;">Patimban</span></span>
-        <div class="sidebar-logo-close" onclick="closeSidebar()" aria-label="Tutup menu">
-            <i class="fas fa-times" style="font-size: 14px;"></i>
-        </div>
+        <span class="sidebar-logo-text">Mitra <span class="sidebar-logo-highlight">Patimban</span></span>
+        <button type="button" class="sidebar-logo-close" onclick="closeSidebar()" aria-label="Tutup menu">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 
     {{-- Navigation --}}
@@ -80,9 +80,7 @@
                class="nav-link {{ request()->routeIs('mitra.pendapatan.ulasan.*') ? 'active' : '' }}">
                 <i class="fas fa-star"></i> Ulasan Masuk
                 @if($jumlahUlasanBaru > 0)
-                    <span class="nav-badge" style="background: rgba(187,128,9,0.2); color: #e3b341;">
-                        {{ $jumlahUlasanBaru }} baru
-                    </span>
+                    <span class="nav-badge nav-badge-amber">{{ $jumlahUlasanBaru }} baru</span>
                 @endif
             </a>
         </div>
@@ -95,7 +93,7 @@
             <div class="sidebar-avatar">
                 {{ strtoupper(substr(Auth::user()->name ?? 'M', 0, 1)) }}
             </div>
-            <div style="overflow: hidden; flex: 1;">
+            <div class="sidebar-profile-info">
                 <div class="sidebar-profile-name">{{ Auth::user()->name ?? 'Mitra BUMDes' }}</div>
                 <div class="sidebar-profile-role">Mitra Resmi</div>
             </div>
