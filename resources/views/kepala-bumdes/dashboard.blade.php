@@ -84,16 +84,16 @@
         {{-- Card 3: Total Pemasukan BUMDes --}}
         <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 border border-slate-100 shadow-sm relative overflow-hidden group hover:border-emerald-300 transition-all">
             <div class="absolute top-0 right-0 w-16 sm:w-24 h-16 sm:h-24 bg-emerald-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-            <div class="flex justify-between items-start gap-2 relative z-10">
-                <div class="min-w-0 flex-1">
-                    <p class="text-slate-400 text-[9px] sm:text-xs font-bold uppercase tracking-wider mb-1">Pemasukan</p>
-                    <h3 class="text-sm sm:text-xl lg:text-2xl font-black text-slate-800 font-mono mt-1 leading-tight whitespace-nowrap">
-                        Rp {{ $formatRupiah($totalPemasukanBumdes) }}
-                    </h3>
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-2 sm:mb-3">
+                    <p class="text-slate-400 text-[9px] sm:text-xs font-bold uppercase tracking-wider">Pemasukan</p>
+                    <div class="w-6 h-6 sm:w-9 sm:h-9 bg-emerald-500 text-white rounded-md sm:rounded-lg flex items-center justify-center shadow-md shadow-emerald-500/30 shrink-0">
+                        <i class="fas fa-hand-holding-usd text-[10px] sm:text-sm"></i>
+                    </div>
                 </div>
-                <div class="w-7 h-7 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-emerald-500 text-white rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 shrink-0">
-                    <i class="fas fa-hand-holding-usd text-xs sm:text-base lg:text-xl"></i>
-                </div>
+                <h3 class="text-lg sm:text-2xl font-black text-slate-800 font-mono leading-none whitespace-nowrap">
+                    Rp {{ $formatRupiah($totalPemasukanBumdes) }}
+                </h3>
             </div>
             <p class="mt-3 sm:mt-5 text-[10px] sm:text-xs font-semibold text-slate-400 relative z-10">
                 Bagi hasil
@@ -103,16 +103,16 @@
         {{-- Card 4: Total Pengeluaran BUMDes --}}
         <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 border border-slate-100 shadow-sm relative overflow-hidden group hover:border-red-300 transition-all">
             <div class="absolute top-0 right-0 w-16 sm:w-24 h-16 sm:h-24 bg-red-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-            <div class="flex justify-between items-start gap-2 relative z-10">
-                <div class="min-w-0 flex-1">
-                    <p class="text-slate-400 text-[9px] sm:text-xs font-bold uppercase tracking-wider mb-1">Pengeluaran</p>
-                    <h3 class="text-sm sm:text-xl lg:text-2xl font-black text-slate-800 font-mono mt-1 leading-tight whitespace-nowrap">
-                        Rp {{ $formatRupiah($totalPengeluaranBumdes) }}
-                    </h3>
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-2 sm:mb-3">
+                    <p class="text-slate-400 text-[9px] sm:text-xs font-bold uppercase tracking-wider">Pengeluaran</p>
+                    <div class="w-6 h-6 sm:w-9 sm:h-9 bg-red-500 text-white rounded-md sm:rounded-lg flex items-center justify-center shadow-md shadow-red-500/30 shrink-0">
+                        <i class="fas fa-file-invoice-dollar text-[10px] sm:text-sm"></i>
+                    </div>
                 </div>
-                <div class="w-7 h-7 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-red-500 text-white rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shadow-red-500/30 shrink-0">
-                    <i class="fas fa-file-invoice-dollar text-xs sm:text-base lg:text-xl"></i>
-                </div>
+                <h3 class="text-lg sm:text-2xl font-black text-slate-800 font-mono leading-none whitespace-nowrap">
+                    Rp {{ $formatRupiah($totalPengeluaranBumdes) }}
+                </h3>
             </div>
             <a href="{{ route('kepala-bumdes.monitoring-keuangan') }}" class="mt-3 sm:mt-5 inline-flex items-center text-[10px] sm:text-xs font-bold text-red-500 hover:text-red-600 transition relative z-10">
                 Monitoring <i class="fas fa-arrow-right ml-1 sm:ml-1.5"></i>
