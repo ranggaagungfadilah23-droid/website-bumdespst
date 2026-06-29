@@ -1,15 +1,20 @@
 @extends('theme.default')
 
-@section('content')
-<div class="p-6">
+@section('title', 'Dashboard Admin - BUMDes Patimban')
 
-    <div class="flex justify-between items-center mb-6">
+@include('admin.partials.styles')
+
+@section('content')
+<div class="admin-page">
+
+    <div class="admin-page-header">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800">Halo, {{ auth()->user()->name }}! 👋</h1>
-            <p class="text-slate-400 text-sm mt-1">Pantau performa BUMDes Patimban hari ini.</p>
+            <h1 class="admin-page-title">Halo, {{ auth()->user()->name }}!</h1>
+            <p class="admin-page-subtitle">Pantau performa BUMDes Patimban hari ini.</p>
         </div>
-        <div class="text-sm text-slate-400 bg-white px-4 py-2 rounded-lg border border-slate-100 shadow-sm">
-            <i class="fas fa-calendar-alt mr-2"></i> {{ now()->translatedFormat('d F Y') }}
+        <div class="admin-page-meta">
+            <i class="fas fa-calendar-alt"></i>
+            {{ now()->translatedFormat('d F Y') }}
         </div>
     </div>
 
@@ -22,37 +27,36 @@
         $bhPending    = \App\Models\BagiHasil::whereMonth('tanggal',now()->month)->whereYear('tanggal',now()->year)->where('status','PENDING')->count();
     @endphp
 
-    {{-- STAT CARDS --}}
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-        <a href="{{ route('admin.mitra.index') }}" class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-            <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center mb-3"><i class="fas fa-store text-blue-600"></i></div>
-            <p class="text-xs text-slate-400 mb-1">Mitra Aktif</p>
-            <p class="text-2xl font-bold text-slate-800">{{ $mitraAktif }}</p>
+    <div class="admin-stat-grid admin-stat-grid--6">
+        <a href="{{ route('admin.mitra.index') }}" class="admin-stat-card">
+            <div class="admin-stat-icon" style="background:#eff6ff;color:#2563eb;"><i class="fas fa-store"></i></div>
+            <p class="admin-stat-label">Mitra Aktif</p>
+            <p class="admin-stat-value">{{ $mitraAktif }}</p>
         </a>
-        <a href="{{ route('admin.pengajuan') }}" class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-            <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center mb-3"><i class="fas fa-clock text-amber-500"></i></div>
-            <p class="text-xs text-slate-400 mb-1">Pengajuan Mitra</p>
-            <p class="text-2xl font-bold text-slate-800">{{ $pengajuan }}</p>
+        <a href="{{ route('admin.pengajuan') }}" class="admin-stat-card">
+            <div class="admin-stat-icon" style="background:#fffbeb;color:#d97706;"><i class="fas fa-clock"></i></div>
+            <p class="admin-stat-label">Pengajuan Mitra</p>
+            <p class="admin-stat-value">{{ $pengajuan }}</p>
         </a>
-        <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-            <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center mb-3"><i class="fas fa-chart-line text-emerald-600"></i></div>
-            <p class="text-xs text-slate-400 mb-1">Total Omzet</p>
-            <p class="text-lg font-bold text-slate-800">Rp {{ number_format($omzetBulan,0,',','.') }}</p>
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon" style="background:#ecfdf5;color:#059669;"><i class="fas fa-chart-line"></i></div>
+            <p class="admin-stat-label">Total Omzet</p>
+            <p class="admin-stat-value admin-stat-value--sm">Rp {{ number_format($omzetBulan,0,',','.') }}</p>
         </div>
-        <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-            <div class="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center mb-3"><i class="fas fa-university text-teal-600"></i></div>
-            <p class="text-xs text-slate-400 mb-1">Kas BUMDes</p>
-            <p class="text-lg font-bold text-slate-800">Rp {{ number_format($kasBulan,0,',','.') }}</p>
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon" style="background:#f0fdfa;color:#0d9488;"><i class="fas fa-university"></i></div>
+            <p class="admin-stat-label">Kas BUMDes</p>
+            <p class="admin-stat-value admin-stat-value--sm">Rp {{ number_format($kasBulan,0,',','.') }}</p>
         </div>
-        <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-            <div class="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center mb-3"><i class="fas fa-check-circle text-green-600"></i></div>
-            <p class="text-xs text-slate-400 mb-1">Bagi Hasil Terkonfirmasi</p>
-            <p class="text-2xl font-bold text-slate-800">{{ $bhSelesai }}</p>
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon" style="background:#ecfdf5;color:#16a34a;"><i class="fas fa-check-circle"></i></div>
+            <p class="admin-stat-label">Bagi Hasil Selesai</p>
+            <p class="admin-stat-value">{{ $bhSelesai }}</p>
         </div>
-        <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-            <div class="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center mb-3"><i class="fas fa-exclamation-circle text-rose-500"></i></div>
-            <p class="text-xs text-slate-400 mb-1">Bagi Hasil Pending</p>
-            <p class="text-2xl font-bold text-slate-800">{{ $bhPending }}</p>
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon" style="background:#fff1f2;color:#e11d48;"><i class="fas fa-exclamation-circle"></i></div>
+            <p class="admin-stat-label">Bagi Hasil Pending</p>
+            <p class="admin-stat-value">{{ $bhPending }}</p>
         </div>
     </div>
 
@@ -71,56 +75,72 @@
         $recents = \App\Models\Bagihasil::latest()->take(5)->get();
     @endphp
 
-    {{-- GRAFIK --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="md:col-span-2 bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-            <p class="font-bold text-slate-700 mb-0.5">Tren omzet & kas BUMDes</p>
-            <p class="text-xs text-slate-400 mb-4">Tahun {{ now()->year }}</p>
-            <canvas id="lineChart" height="120"></canvas>
+    <div class="admin-chart-grid">
+        <div class="admin-card admin-card-body">
+            <p class="admin-card-title">Tren omzet & kas BUMDes</p>
+            <p class="admin-card-subtitle">Tahun {{ now()->year }}</p>
+            <div style="position:relative;height:220px;margin-top:12px;">
+                <canvas id="lineChart"></canvas>
+            </div>
         </div>
-        <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-            <p class="font-bold text-slate-700 mb-0.5">Kontribusi per mitra</p>
-            <p class="text-xs text-slate-400 mb-4">{{ now()->translatedFormat('F Y') }}</p>
-            <canvas id="donutChart" height="180"></canvas>
-            <div id="donutLegend" class="mt-3 space-y-1.5"></div>
+        <div class="admin-card admin-card-body">
+            <p class="admin-card-title">Kontribusi per mitra</p>
+            <p class="admin-card-subtitle">{{ now()->translatedFormat('F Y') }}</p>
+            <div style="position:relative;height:180px;margin-top:12px;">
+                <canvas id="donutChart"></canvas>
+            </div>
+            <div id="donutLegend" style="margin-top:12px;"></div>
         </div>
     </div>
 
-    {{-- BAWAH --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-            <p class="font-bold text-slate-700 mb-4">Omzet per mitra — bulan ini</p>
+    <div class="admin-chart-grid--2">
+        <div class="admin-card admin-card-body">
+            <p class="admin-card-title" style="margin-bottom:14px;">Omzet per mitra — bulan ini</p>
             <div id="barRows"></div>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            <div class="px-5 py-4 border-b border-slate-100">
-                <p class="font-bold text-slate-700">Bagi hasil terbaru</p>
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <p class="admin-card-title">Bagi hasil terbaru</p>
             </div>
-            <table class="w-full text-sm">
-                <thead class="bg-slate-50"><tr>
-                    <th class="text-left px-5 py-3 text-xs font-bold text-slate-400 uppercase">Mitra</th>
-                    <th class="text-right px-5 py-3 text-xs font-bold text-slate-400 uppercase">Omzet</th>
-                    <th class="text-center px-5 py-3 text-xs font-bold text-slate-400 uppercase">Status</th>
-                </tr></thead>
-                <tbody class="divide-y divide-slate-50">
-                    @forelse($recents as $bh)
-                    @php $m = \App\Models\Mitra::where('user_id',$bh->mitra_id)->first(); @endphp
-                    <tr class="hover:bg-slate-50/50">
-                        <td class="px-5 py-3 font-medium text-slate-700 max-w-[120px] truncate">{{ $m->nama_usaha ?? '-' }}</td>
-                        <td class="px-5 py-3 text-right font-mono text-slate-600 text-xs">Rp {{ number_format($bh->total_omzet,0,',','.') }}</td>
-                        <td class="px-5 py-3 text-center">
-                            @if($bh->status=='SELESAI')
-                                <span class="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Selesai</span>
-                            @else
-                                <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">Pending</span>
-                            @endif
-                        </td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="3" class="px-5 py-8 text-center text-slate-400 text-xs">Belum ada data</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
+            <div class="admin-table-wrap admin-table-wrap--cards">
+                <table class="admin-table admin-table--responsive">
+                    <thead>
+                        <tr>
+                            <th>Mitra</th>
+                            <th class="text-right">Omzet</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($recents as $bh)
+                        @php $m = \App\Models\Mitra::where('user_id',$bh->mitra_id)->first(); @endphp
+                        <tr>
+                            <td data-label="Mitra">
+                                <span class="admin-user-name">{{ $m->nama_usaha ?? '-' }}</span>
+                            </td>
+                            <td data-label="Omzet" class="text-right">
+                                <span style="font-family:ui-monospace,monospace;font-size:0.75rem;">Rp {{ number_format($bh->total_omzet,0,',','.') }}</span>
+                            </td>
+                            <td data-label="Status" class="text-center">
+                                @if($bh->status=='SELESAI')
+                                    <span class="admin-badge admin-badge--status-ok">Selesai</span>
+                                @else
+                                    <span class="admin-badge admin-badge--status-pending">Pending</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr class="admin-table-empty">
+                            <td colspan="3">
+                                <div class="admin-empty" style="padding:24px;">
+                                    <p>Belum ada data</p>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -136,12 +156,22 @@ new Chart(document.getElementById('lineChart'), {
     data: {
         labels: {!! json_encode($tren->map(fn($t)=>$namaBulan[$t->bln-1])) !!},
         datasets: [
-            { label: 'Omzet Mitra', data: {!! json_encode($tren->pluck('omzet')) !!}, borderColor:'#185FA5', backgroundColor:'rgba(24,95,165,0.07)', borderWidth:2, pointRadius:4, tension:0.4, fill:true },
-            { label: 'Kas BUMDes', data: {!! json_encode($tren->pluck('kas')) !!}, borderColor:'#0F6E56', backgroundColor:'rgba(15,110,86,0.07)', borderWidth:2, pointRadius:4, tension:0.4, fill:true }
+            { label: 'Omzet Mitra', data: {!! json_encode($tren->pluck('omzet')) !!}, borderColor:'#185FA5', backgroundColor:'rgba(24,95,165,0.07)', borderWidth:2, pointRadius:3, tension:0.4, fill:true },
+            { label: 'Kas BUMDes', data: {!! json_encode($tren->pluck('kas')) !!}, borderColor:'#0F6E56', backgroundColor:'rgba(15,110,86,0.07)', borderWidth:2, pointRadius:3, tension:0.4, fill:true }
         ]
     },
-    options: { responsive:true, plugins: { legend:{position:'top',labels:{font:{size:11},boxWidth:12}}, tooltip:{callbacks:{label:c=>fmt(c.raw)}} },
-        scales: { y:{ticks:{callback:fmtC,font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}, x:{ticks:{font:{size:10}},grid:{display:false}} } }
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position:'top', labels:{ font:{size:11}, boxWidth:12 } },
+            tooltip: { callbacks: { label: c => fmt(c.raw) } }
+        },
+        scales: {
+            y: { ticks: { callback: fmtC, font:{size:10}, maxTicksLimit:6 }, grid:{color:'rgba(0,0,0,0.04)'} },
+            x: { ticks: { font:{size:10} }, grid:{display:false} }
+        }
+    }
 });
 
 const mc = {!! json_encode($mitraChart) !!};
@@ -149,20 +179,20 @@ if (mc.length) {
     new Chart(document.getElementById('donutChart'), {
         type:'doughnut',
         data:{ labels:mc.map(m=>m.nama), datasets:[{data:mc.map(m=>m.omzet),backgroundColor:palette,borderWidth:0,hoverOffset:4}] },
-        options:{ responsive:true, cutout:'68%', plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.raw)}}} }
+        options:{ responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.raw)}}} }
     });
     const leg = document.getElementById('donutLegend');
-    mc.forEach((m,i)=> leg.innerHTML += `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#64748b;margin-bottom:4px;">
+    mc.forEach((m,i)=> leg.innerHTML += `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#656d76;margin-bottom:6px;">
         <span style="width:8px;height:8px;border-radius:50%;background:${palette[i%palette.length]};flex-shrink:0;"></span>
         <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.nama}</span>
-        <span style="font-weight:500;color:#1e293b;">${fmtC(m.omzet)}</span></div>`);
+        <span style="font-weight:600;color:#1f2328;">${fmtC(m.omzet)}</span></div>`);
 
     const maxO = Math.max(...mc.map(m=>m.omzet),1);
     const br = document.getElementById('barRows');
-    mc.forEach((m,i)=> br.innerHTML += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-        <div style="font-size:12px;color:#64748b;width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.nama}</div>
-        <div style="flex:1;height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;"><div style="height:100%;width:${Math.round(m.omzet/maxO*100)}%;background:${palette[i%palette.length]};border-radius:4px;"></div></div>
-        <div style="font-size:11px;color:#64748b;width:60px;text-align:right;">${fmtC(m.omzet)}</div></div>`);
+    mc.forEach((m,i)=> br.innerHTML += `<div class="admin-bar-row">
+        <div class="admin-bar-label">${m.nama}</div>
+        <div class="admin-bar-track"><div class="admin-bar-fill" style="width:${Math.round(m.omzet/maxO*100)}%;background:${palette[i%palette.length]};"></div></div>
+        <div class="admin-bar-value">${fmtC(m.omzet)}</div></div>`);
 }
 </script>
 @endsection
