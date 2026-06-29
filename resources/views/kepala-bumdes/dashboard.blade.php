@@ -97,7 +97,7 @@
                 </div>
             </div>
             <p class="mt-3 sm:mt-5 text-[10px] sm:text-xs font-semibold text-slate-400 relative z-10">
-                Bagi hasil (10%)
+                Bagi hasil
             </p>
         </div>
 
