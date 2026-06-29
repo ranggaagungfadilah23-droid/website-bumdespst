@@ -128,7 +128,6 @@ class AdminController extends Controller
         $bulanIni = now()->month;
         $tahunIni = now()->year;
 
-        // Gunakan cache agar dashboard tidak berat menghitung tiap kali dibuka
         $stats = Cache::remember("laporan_stats_{$bulanIni}_{$tahunIni}", 600, function () use ($bulanIni, $tahunIni) {
             return [
                 'totalKasMasuk'  => BagiHasil::whereMonth('tanggal', $bulanIni)->whereYear('tanggal', $tahunIni)->where('status', 'SELESAI')->sum('nominal_bumdes'),
@@ -143,7 +142,6 @@ class AdminController extends Controller
 
         $namaBulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         
-        // Optimasi: Gunakan Eager Loading 'mitra' agar tidak N+1 Query
         $perMitra = BagiHasil::where('status', 'SELESAI')
             ->with('mitra') 
             ->get()
@@ -168,6 +166,7 @@ class AdminController extends Controller
     {
         $bulanIni = now()->month;
         $tahunIni = now()->year;
+        $bulanAktif = now()->translatedFormat('F Y');
 
         $totalKasMasuk  = BagiHasil::whereMonth('tanggal', $bulanIni)->whereYear('tanggal', $tahunIni)->where('status', 'SELESAI')->sum('nominal_bumdes');
         $totalBagiHasil = BagiHasil::whereMonth('tanggal', $bulanIni)->whereYear('tanggal', $tahunIni)->where('status', 'SELESAI')->sum('total_omzet');
@@ -184,17 +183,15 @@ class AdminController extends Controller
                 'kas_bumdes'    => $group->sum('nominal_bumdes'),
             ])->values();
 
-        $pdf = Pdf::loadView('admin.laporan_pdf', compact('totalKasMasuk', 'totalBagiHasil', 'totalMitra', 'perMitra'));
+        $pdf = Pdf::loadView('admin.laporan_pdf', compact('totalKasMasuk', 'totalBagiHasil', 'totalMitra', 'perMitra', 'bulanAktif'));
         return $pdf->stream('Laporan_BagiHasil.pdf');
     }
-public function histori()
-{
-    // Pastikan nama variabel di controller ($aktivitas) 
-    // sama dengan yang dipanggil di file blade
-    $aktivitas = \App\Models\ActivityLog::latest()->paginate(20);
 
-    return view('admin.histori', compact('aktivitas'));
-}
+    public function histori()
+    {
+        $aktivitas = ActivityLog::latest()->paginate(20);
+        return view('admin.histori', compact('aktivitas'));
+    }
 
     private function kirimWA($no_hp, $pesan)
     {
@@ -205,7 +202,7 @@ public function histori()
         curl_setopt_array($curl, [
             CURLOPT_URL            => 'https://api.fonnte.com/send',
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 5, // Tambahkan timeout agar tidak hang
+            CURLOPT_TIMEOUT        => 5,
             CURLOPT_CUSTOMREQUEST  => 'POST',
             CURLOPT_POSTFIELDS     => ['target' => $target, 'message' => $pesan, 'countryCode' => '62'],
             CURLOPT_HTTPHEADER     => ["Authorization: $token"],
