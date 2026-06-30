@@ -47,11 +47,11 @@ class Mitra extends Model
      */
     public function jasas()
     {
-        return $this->hasMany(Jasa::class, 'mitra_id');
+        return $this->hasMany(Jasa::class, 'user_id');
     }
 
     public function products()
     {
-        return $this->hasMany(Produk::class, 'mitra_id');
+        return $this->hasMany(Produk::class, 'user_id');
     }
 }

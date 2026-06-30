@@ -139,44 +139,45 @@ class AdminController extends Controller
 
 public function destroyMitra($id)
 {
-    // Eager loading relasi yang mungkin berelasi dengan mitra
-    $user = User::with(['mitra.jasas.carts', 'mitra.produks.carts'])->findOrFail($id); 
+    // 1. Cari user berdasarkan ID
+    $user = User::findOrFail($id); 
     
+    // 2. Simpan data untuk log sebelum dihapus
     $namaUsaha = $user->mitra->nama_usaha ?? '-';
     $namaUser  = $user->name;
 
     DB::transaction(function () use ($user) {
         if ($user->mitra) {
-            // 1. Hapus Relasi Jasa dan Cart-nya
-            if ($user->mitra->jasas) {
-                foreach ($user->mitra->jasas as $jasa) {
-                    \App\Models\Cart::where('jasa_id', $jasa->id)->delete();
-                    $jasa->delete();
-                }
+            // Hapus Jasa dan Cart yang terkait
+            // Ganti 'mitra_id' jika nama kolom di tabel jasas Anda berbeda
+            $jasas = \App\Models\Jasa::where('mitra_id', $user->mitra->id)->get();
+            foreach ($jasas as $jasa) {
+                \App\Models\Cart::where('jasa_id', $jasa->id)->delete();
+                $jasa->delete();
             }
 
-            // 2. Hapus Relasi Produk dan Cart-nya (Tambahan untuk Produk)
-            if ($user->mitra->produks) {
-                foreach ($user->mitra->produks as $produk) {
-                    \App\Models\Cart::where('produk_id', $produk->id)->delete();
-                    $produk->delete();
-                }
+            // Hapus Produk dan Cart yang terkait
+            // Ganti 'mitra_id' jika nama kolom di tabel produks Anda berbeda
+            $produks = \App\Models\Produk::where('mitra_id', $user->mitra->id)->get();
+            foreach ($produks as $produk) {
+                \App\Models\Cart::where('produk_id', $produk->id)->delete();
+                $produk->delete();
             }
 
-            // 3. Hapus file SKU jika ada
+            // Hapus SKU
             if ($user->mitra->sku) {
-                Storage::disk('public')->delete($user->mitra->sku);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->mitra->sku);
             }
 
-            // 4. Hapus data mitra
+            // Hapus Mitra
             $user->mitra->delete();
         }
 
-        // 5. Hapus user
+        // Hapus User
         $user->delete();
     });
 
-    ActivityLog::create([
+    \App\Models\ActivityLog::create([
         'user_name' => auth()->user()->name,
         'action'    => 'Hapus',
         'details'   => 'Menghapus data mitra: ' . $namaUsaha . ' (' . $namaUser . ')',
