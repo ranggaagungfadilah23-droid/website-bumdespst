@@ -140,8 +140,8 @@ class AdminController extends Controller
 public function destroyMitra($id)
 {
     // 1. Cari user berdasarkan ID
-    $user = User::findOrFail($id); 
-    
+    $user = User::findOrFail($id);
+
     // 2. Simpan data untuk log sebelum dihapus
     $namaUsaha = $user->mitra->nama_usaha ?? '-';
     $namaUser  = $user->name;
@@ -149,16 +149,15 @@ public function destroyMitra($id)
     DB::transaction(function () use ($user) {
         if ($user->mitra) {
             // Hapus Jasa dan Cart yang terkait
-            // Ganti 'mitra_id' jika nama kolom di tabel jasas Anda berbeda
-            $jasas = \App\Models\Jasa::where('user_id', $user->mitra->id)->get();
+            // PENTING: jasas.user_id & produks.user_id merujuk ke users.id, BUKAN mitras.id
+            $jasas = \App\Models\Jasa::where('user_id', $user->id)->get();
             foreach ($jasas as $jasa) {
                 \App\Models\Cart::where('jasa_id', $jasa->id)->delete();
                 $jasa->delete();
             }
 
             // Hapus Produk dan Cart yang terkait
-            // Ganti 'mitra_id' jika nama kolom di tabel produks Anda berbeda
-            $produks = \App\Models\Produk::where('user_id', $user->mitra->id)->get();
+            $produks = \App\Models\Produk::where('user_id', $user->id)->get();
             foreach ($produks as $produk) {
                 \App\Models\Cart::where('produk_id', $produk->id)->delete();
                 $produk->delete();
@@ -185,7 +184,6 @@ public function destroyMitra($id)
 
     return redirect()->route('admin.mitra.index')->with('success', 'Data Mitra berhasil dihapus.');
 }
-
 
     public function laporan()
     {
