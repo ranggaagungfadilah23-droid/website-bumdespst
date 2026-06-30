@@ -137,28 +137,47 @@ class AdminController extends Controller
         return view('admin.data-mitra', compact('mitras'));
     }
 
-    public function destroyMitra($id)
-    {
-        $user      = User::with('mitra')->findOrFail($id);
-        $namaUsaha = $user->mitra->nama_usaha ?? '-';
-        $namaUser  = $user->name;
+   public function destroyMitra($id)
+{
+    // Pastikan $id yang dikirim adalah user_id (sesuai saran Opsi A sebelumnya)
+    $user = User::with(['mitra.jasas.carts'])->findOrFail($id); 
+    
+    $namaUsaha = $user->mitra->nama_usaha ?? '-';
+    $namaUser  = $user->name;
 
-        DB::transaction(function () use ($user) {
-            if ($user->mitra) {
-                if ($user->mitra->sku) Storage::disk('public')->delete($user->mitra->sku);
-                $user->mitra->delete();
+    DB::transaction(function () use ($user) {
+        if ($user->mitra) {
+            // 1. Hapus data yang berelasi dengan mitra (Contoh: Jasa dan Cart-nya)
+            if ($user->mitra->jasas) {
+                foreach ($user->mitra->jasas as $jasa) {
+                    // Hapus cart yang merujuk ke jasa ini terlebih dahulu
+                    \App\Models\Cart::where('jasa_id', $jasa->id)->delete();
+                    $jasa->delete();
+                }
             }
-            $user->delete();
-        });
 
-        ActivityLog::create([
-            'user_name' => auth()->user()->name,
-            'action'    => 'Hapus',
-            'details'   => 'Menghapus data mitra: ' . $namaUsaha . ' (' . $namaUser . ')',
-        ]);
+            // 2. Hapus file SKU jika ada
+            if ($user->mitra->sku) {
+                Storage::disk('public')->delete($user->mitra->sku);
+            }
 
-        return redirect()->route('admin.mitra.index')->with('success', 'Data Mitra berhasil dihapus.');
-    }
+            // 3. Hapus data mitra
+            $user->mitra->delete();
+        }
+
+        // 4. Hapus user
+        $user->delete();
+    });
+
+    ActivityLog::create([
+        'user_name' => auth()->user()->name,
+        'action'    => 'Hapus',
+        'details'   => 'Menghapus data mitra: ' . $namaUsaha . ' (' . $namaUser . ')',
+    ]);
+
+    return redirect()->route('admin.mitra.index')->with('success', 'Data Mitra berhasil dihapus.');
+}
+
 
     public function laporan()
     {
