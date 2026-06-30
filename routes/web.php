@@ -117,9 +117,10 @@ Route::get('/laporan/pdf', [AdminController::class, 'laporanPdf'])->name('lapora
         Route::get('/pengajuan/{id}/preview', [SuratController::class, 'apiPreview'])->name('preview-api');
         Route::patch('/pengajuan/{id}/setujui', [SuratController::class, 'setujuiMitra'])->name('setujui');
         Route::post('/pengajuan/{id}/reject', [KepalaBumdesController::class, 'reject'])->name('reject');
-        Route::get('/kepala-bumdes/laporan-bulanan/cetak', [LaporanBulananController::class, 'cetakPdf'])->name('kepala-bumdes.laporan-bulanan.pdf');
-        
-        Route::get('/laporan-bulanan', [LaporanBulananController::class, 'index'])->name('laporan-bulanan');
+      
+         Route::get('/laporan-bulanan', [LaporanBulananController::class, 'index'])->name('laporan-bulanan');
+    Route::get('/laporan-bulanan/cetak', [LaporanBulananController::class, 'cetakPdf'])->name('laporan-bulanan.pdf');
+
         Route::get('/monitoring-keuangan', [App\Http\Controllers\KepalaBumdes\InputKeuanganController::class, 'index'])->name('monitoring-keuangan');
         Route::get('/monitoring-keuangan/export', [App\Http\Controllers\KepalaBumdes\InputKeuanganController::class, 'export'])->name('monitoring-keuangan.export');
 
