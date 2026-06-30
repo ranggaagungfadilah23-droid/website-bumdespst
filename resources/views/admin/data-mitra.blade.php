@@ -68,7 +68,7 @@
                             </span>
                         </td>
                         <td data-label="Aksi" class="text-center">
-                            <form action="{{ route('admin.mitra.destroy', $mitra->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus mitra ini? Data tidak bisa dikembalikan.');">
+                     <form action="{{ route('admin.mitra.destroy', $mitra->user_id) }}" method="POST"  onsubmit="return confirm('Apakah Anda yakin ingin menghapus mitra ini? Data tidak bisa dikembalikan.');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm" title="Hapus Mitra">
