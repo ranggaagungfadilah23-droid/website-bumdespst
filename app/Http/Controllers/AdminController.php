@@ -137,35 +137,42 @@ class AdminController extends Controller
         return view('admin.data-mitra', compact('mitras'));
     }
 
-   public function destroyMitra($id)
+public function destroyMitra($id)
 {
-    // Pastikan $id yang dikirim adalah user_id (sesuai saran Opsi A sebelumnya)
-    $user = User::with(['mitra.jasas.carts'])->findOrFail($id); 
+    // Eager loading relasi yang mungkin berelasi dengan mitra
+    $user = User::with(['mitra.jasas.carts', 'mitra.produks.carts'])->findOrFail($id); 
     
     $namaUsaha = $user->mitra->nama_usaha ?? '-';
     $namaUser  = $user->name;
 
     DB::transaction(function () use ($user) {
         if ($user->mitra) {
-            // 1. Hapus data yang berelasi dengan mitra (Contoh: Jasa dan Cart-nya)
+            // 1. Hapus Relasi Jasa dan Cart-nya
             if ($user->mitra->jasas) {
                 foreach ($user->mitra->jasas as $jasa) {
-                    // Hapus cart yang merujuk ke jasa ini terlebih dahulu
                     \App\Models\Cart::where('jasa_id', $jasa->id)->delete();
                     $jasa->delete();
                 }
             }
 
-            // 2. Hapus file SKU jika ada
+            // 2. Hapus Relasi Produk dan Cart-nya (Tambahan untuk Produk)
+            if ($user->mitra->produks) {
+                foreach ($user->mitra->produks as $produk) {
+                    \App\Models\Cart::where('produk_id', $produk->id)->delete();
+                    $produk->delete();
+                }
+            }
+
+            // 3. Hapus file SKU jika ada
             if ($user->mitra->sku) {
                 Storage::disk('public')->delete($user->mitra->sku);
             }
 
-            // 3. Hapus data mitra
+            // 4. Hapus data mitra
             $user->mitra->delete();
         }
 
-        // 4. Hapus user
+        // 5. Hapus user
         $user->delete();
     });
 

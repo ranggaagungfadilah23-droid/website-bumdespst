@@ -35,4 +35,9 @@ public function mitra()
 {
     return $this->belongsTo(\App\Models\Mitra::class, 'mitra_id');
 }
+
+public function carts()
+    {
+        return $this->hasMany(Cart::class, 'produk_id');
+    }
 }

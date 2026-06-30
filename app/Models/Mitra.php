@@ -41,4 +41,17 @@ class Mitra extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Relasi ke Jasa (Satu mitra memiliki banyak jasa)
+     */
+    public function jasas()
+    {
+        return $this->hasMany(Jasa::class, 'mitra_id');
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Produk::class, 'mitra_id');
+    }
 }
