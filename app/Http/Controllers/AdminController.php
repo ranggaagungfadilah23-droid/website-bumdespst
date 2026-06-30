@@ -62,6 +62,43 @@ class AdminController extends Controller
         return redirect()->route('admin.pengajuan')->with('success', 'Berkas valid dan diteruskan ke Kepala BUMDes!');
     }
 
+    public function kirimLaporan(Request $request)
+    {
+        $request->validate([
+            'bulan_aktif'      => 'required|string',
+            'total_kas_masuk'  => 'required|numeric',
+            'total_omzet'      => 'required|numeric',
+            'total_mitra'      => 'required|integer',
+            'catatan'          => 'nullable|string',
+        ]);
+
+        ActivityLog::create([
+            'user_name' => auth()->user()->name,
+            'action'    => 'Kirim Laporan',
+            'details'   => 'Mengirim laporan keuangan periode ' . $request->bulan_aktif . ' ke Kepala BUMDes.'
+                . ($request->catatan ? ' Catatan: ' . $request->catatan : ''),
+        ]);
+
+        $kepalaBumdes = User::where('role', 'kepala-bumdes')->get();
+        foreach ($kepalaBumdes as $kepala) {
+            if ($kepala->no_hp) {
+                $pesan = "Halo Kepala BUMDes,\n\n"
+                    . "Laporan keuangan periode *{$request->bulan_aktif}* telah dikirim oleh Admin:\n\n"
+                    . "Total Omzet Mitra: Rp " . number_format($request->total_omzet, 0, ',', '.') . "\n"
+                    . "Kas Masuk BUMDes: Rp " . number_format($request->total_kas_masuk, 0, ',', '.') . "\n"
+                    . "Jumlah Mitra: {$request->total_mitra} mitra\n"
+                    . ($request->catatan ? "\nCatatan: {$request->catatan}\n" : '')
+                    . "\nSilakan cek Dashboard Kepala BUMDes untuk detail lengkap.\n\n"
+                    . "*Sistem BUMDes Patimban*";
+                $this->kirimWA($kepala->no_hp, $pesan);
+            }
+        }
+
+        return redirect()
+            ->route('admin.laporan')
+            ->with('laporan_terkirim', true);
+    }
+
     public function reject(Request $request, $id)
     {
         $user     = User::with('mitra')->findOrFail($id);
@@ -141,13 +178,13 @@ class AdminController extends Controller
             ->groupBy('bulan')->orderBy('bulan')->get();
 
         $namaBulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-        
+
         $perMitra = BagiHasil::where('status', 'SELESAI')
-            ->with('mitra') 
+            ->with('mitra')
             ->get()
             ->groupBy('mitra_id')
             ->map(fn($group) => [
-                'nama'          => $group->first()->mitra->nama_usaha ?? '-', 
+                'nama'          => $group->first()->mitra->nama_usaha ?? '-',
                 'omzet'         => $group->sum('total_omzet'),
                 'persen_bumdes' => $group->first()->persen_bumdes,
                 'kas_bumdes'    => $group->sum('nominal_bumdes'),
@@ -171,7 +208,7 @@ class AdminController extends Controller
         $totalKasMasuk  = BagiHasil::whereMonth('tanggal', $bulanIni)->whereYear('tanggal', $tahunIni)->where('status', 'SELESAI')->sum('nominal_bumdes');
         $totalBagiHasil = BagiHasil::whereMonth('tanggal', $bulanIni)->whereYear('tanggal', $tahunIni)->where('status', 'SELESAI')->sum('total_omzet');
         $totalMitra     = Mitra::whereHas('user', fn($q) => $q->where('status', 'aktif'))->count();
-        
+
         $perMitra = BagiHasil::whereMonth('tanggal', $bulanIni)->whereYear('tanggal', $tahunIni)->where('status', 'SELESAI')
             ->with('mitra')
             ->get()
