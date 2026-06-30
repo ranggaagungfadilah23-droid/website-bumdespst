@@ -150,7 +150,7 @@ public function destroyMitra($id)
         if ($user->mitra) {
             // Hapus Jasa dan Cart yang terkait
             // Ganti 'mitra_id' jika nama kolom di tabel jasas Anda berbeda
-            $jasas = \App\Models\Jasa::where('mitra_id', $user->mitra->id)->get();
+            $jasas = \App\Models\Jasa::where('user_id', $user->mitra->id)->get();
             foreach ($jasas as $jasa) {
                 \App\Models\Cart::where('jasa_id', $jasa->id)->delete();
                 $jasa->delete();
@@ -158,7 +158,7 @@ public function destroyMitra($id)
 
             // Hapus Produk dan Cart yang terkait
             // Ganti 'mitra_id' jika nama kolom di tabel produks Anda berbeda
-            $produks = \App\Models\Produk::where('mitra_id', $user->mitra->id)->get();
+            $produks = \App\Models\Produk::where('user_id', $user->mitra->id)->get();
             foreach ($produks as $produk) {
                 \App\Models\Cart::where('produk_id', $produk->id)->delete();
                 $produk->delete();
