@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\BagiHasil;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\SvgWriter;
 
 class LaporanBulananController extends Controller
 {
@@ -24,17 +26,38 @@ class LaporanBulananController extends Controller
         $tahunAktif = $request->get('tahun', date('Y'));
         $data = $this->hitungLaporan($tahunAktif);
 
+        $namaKepala = "IQBAL NUR AFRIZAL";
+        $jabatan    = "Kepala BUMDes Putra Samudra Patimban";
+        $idKepala   = "BUMDES-ID: 9201.0101.2024";
+
+        $isiQR = "=== VERIFIKASI DOKUMEN DIGITAL ===\n" .
+                 "BUMDes Putra Samudra Patimban\n" .
+                 "----------------------------------\n" .
+                 "Disahkan Oleh  : " . $namaKepala . "\n" .
+                 "Jabatan        : " . $jabatan . "\n" .
+                 "ID BUMDes      : " . $idKepala . "\n" .
+                 "----------------------------------\n" .
+                 "Dokumen        : Laporan Bulanan Kas Masuk\n" .
+                 "Periode        : Tahun " . $tahunAktif . "\n" .
+                 "Total Kas      : Rp " . number_format($data['totalKasTahun'], 0, ',', '.') . "\n" .
+                 "----------------------------------\n" .
+                 "Tanggal        : " . now()->translatedFormat('d F Y') . "\n" .
+                 "Pukul          : " . now()->format('H:i') . " WIB\n" .
+                 "==================================";
+
+        $qrCode   = new QrCode($isiQR);
+        $writer   = new SvgWriter();
+        $result   = $writer->write($qrCode);
+        $qrBase64 = base64_encode($result->getString());
+
         $pdf = Pdf::loadView('kepala-bumdes.laporan-bulanan-pdf', array_merge($data, [
             'tahunAktif' => $tahunAktif,
+            'qrCode'     => $qrBase64,
         ]))->setPaper('a4', 'portrait');
 
         return $pdf->stream("Laporan-Bulanan-BUMDes-{$tahunAktif}.pdf");
     }
 
-    /**
-     * Hitung semua data laporan bulanan untuk satu tahun.
-     * Dipakai bareng oleh index() (view dashboard) dan cetakPdf() (view PDF).
-     */
     private function hitungLaporan($tahunAktif)
     {
         $namaBulanList = [

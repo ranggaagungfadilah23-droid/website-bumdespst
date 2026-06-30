@@ -23,7 +23,7 @@
     table.data tfoot td.right { text-align: right; color: #1d4ed8; }
     .ttd-wrap    { margin-top: 30px; width: 100%; }
     .ttd-box     { text-align: center; }
-    .ttd-ruang   { height: 55px; }
+    .footer-note { font-size: 9px; font-style: italic; color: #555; margin-top: 20px; text-align: center; border-top: 1px solid #ccc; padding-top: 8px; }
 </style>
 @endsection
 
@@ -126,11 +126,28 @@
         <tr>
             <td width="55%">&nbsp;</td>
             <td width="45%" style="text-align:center;" class="ttd-box">
-                <p style="margin:0; font-size:13px;">Patimban, {{ now()->translatedFormat('d F Y') }}<br>Kepala BUMDes Putra Samudra Patimban,</p>
-                <div class="ttd-ruang"></div>
-                <p style="margin:0; font-size:13px;"><strong><u>IQBAL NUR AFRIZAL</u></strong><br>Kepala BUMDes</p>
+                <p style="margin:0; font-size:13px; line-height:1.8;">
+                    Patimban, {{ now()->translatedFormat('d F Y') }}<br>
+                    Kepala BUMDes Putra Samudra Patimban,
+                </p>
+                <div style="margin: 8px 0;">
+                    <img src="data:image/svg+xml;base64,{{ $qrCode }}"
+                         alt="QR Code TTD Digital"
+                         style="width: 90px; height: 90px;">
+                </div>
+                <p style="margin:0; font-size:13px; line-height:1.8;">
+                    <strong><u>IQBAL NUR AFRIZAL</u></strong><br>
+                    Kepala BUMDes
+                </p>
             </td>
         </tr>
     </table>
+
+    {{-- FOOTER VERIFIKASI --}}
+    <div class="footer-note">
+        Dokumen ini diterbitkan secara digital oleh Sistem Informasi BUMDes Patimban &bull;
+        Keaslian dokumen dapat diverifikasi dengan memindai QR Code di atas &bull;
+        Diterbitkan pada {{ now()->format('d/m/Y H:i') }} WIB
+    </div>
 
 @endsection
