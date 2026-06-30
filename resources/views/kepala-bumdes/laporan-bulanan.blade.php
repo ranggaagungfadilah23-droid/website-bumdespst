@@ -22,10 +22,10 @@
                     @endfor
                 </select>
             </form>
-            <a href="#" onclick="window.print()"
-                class="inline-flex items-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl shadow transition">
-                <i class="fas fa-print"></i> Cetak
-            </a>
+        <a href="{{ route('kepala-bumdes.laporan-bulanan.pdf', ['tahun' => $tahunAktif]) }}" target="_blank"
+    class="inline-flex items-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl shadow transition">
+    <i class="fas fa-print"></i> Cetak
+</a>
         </div>
     </div>
 

@@ -117,7 +117,8 @@ Route::get('/laporan/pdf', [AdminController::class, 'laporanPdf'])->name('lapora
         Route::get('/pengajuan/{id}/preview', [SuratController::class, 'apiPreview'])->name('preview-api');
         Route::patch('/pengajuan/{id}/setujui', [SuratController::class, 'setujuiMitra'])->name('setujui');
         Route::post('/pengajuan/{id}/reject', [KepalaBumdesController::class, 'reject'])->name('reject');
-
+        Route::get('/kepala-bumdes/laporan-bulanan/cetak', [LaporanBulananController::class, 'cetakPdf'])->name('kepala-bumdes.laporan-bulanan.pdf');
+        
         Route::get('/laporan-bulanan', [LaporanBulananController::class, 'index'])->name('laporan-bulanan');
         Route::get('/monitoring-keuangan', [App\Http\Controllers\KepalaBumdes\InputKeuanganController::class, 'index'])->name('monitoring-keuangan');
         Route::get('/monitoring-keuangan/export', [App\Http\Controllers\KepalaBumdes\InputKeuanganController::class, 'export'])->name('monitoring-keuangan.export');
@@ -127,6 +128,7 @@ Route::get('/laporan/pdf', [AdminController::class, 'laporanPdf'])->name('lapora
         Route::delete('/hapus-saldo-awal/{id}', [App\Http\Controllers\KepalaBumdes\InputKeuanganController::class, 'hapusSaldoAwal'])->name('hapus-saldo-awal');
         Route::post('/simpan-pengeluaran', [App\Http\Controllers\KepalaBumdes\InputKeuanganController::class, 'simpanPengeluaran'])->name('simpan-pengeluaran');
         Route::delete('/hapus-pengeluaran/{id}', [App\Http\Controllers\KepalaBumdes\InputKeuanganController::class, 'hapusPengeluaran'])->name('hapus-pengeluaran');
+       
     });
 
     // --- MITRA ---

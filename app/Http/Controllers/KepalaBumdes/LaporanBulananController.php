@@ -5,13 +5,38 @@ namespace App\Http\Controllers\KepalaBumdes;
 use App\Http\Controllers\Controller;
 use App\Models\BagiHasil;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LaporanBulananController extends Controller
 {
     public function index(Request $request)
     {
         $tahunAktif = $request->get('tahun', date('Y'));
+        $data = $this->hitungLaporan($tahunAktif);
 
+        return view('kepala-bumdes.laporan-bulanan', array_merge($data, [
+            'tahunAktif' => $tahunAktif,
+        ]));
+    }
+
+    public function cetakPdf(Request $request)
+    {
+        $tahunAktif = $request->get('tahun', date('Y'));
+        $data = $this->hitungLaporan($tahunAktif);
+
+        $pdf = Pdf::loadView('kepala-bumdes.laporan-bulanan-pdf', array_merge($data, [
+            'tahunAktif' => $tahunAktif,
+        ]))->setPaper('a4', 'portrait');
+
+        return $pdf->stream("Laporan-Bulanan-BUMDes-{$tahunAktif}.pdf");
+    }
+
+    /**
+     * Hitung semua data laporan bulanan untuk satu tahun.
+     * Dipakai bareng oleh index() (view dashboard) dan cetakPdf() (view PDF).
+     */
+    private function hitungLaporan($tahunAktif)
+    {
         $namaBulanList = [
             1 => 'Januari', 2 => 'Februari', 3 => 'Maret',
             4 => 'April',   5 => 'Mei',       6 => 'Juni',
@@ -53,21 +78,21 @@ class LaporanBulananController extends Controller
             ->whereYear('created_at', $tahunAktif)
             ->where('status', 'selesai')
             ->groupBy('mitra_id')
-            ->with('mitra:id,nama_usaha')  // ← fix: ganti 'name' → 'nama_usaha'
+            ->with('mitra:id,nama_usaha')
             ->get();
 
         $totalKasSemua = $perMitraRaw->sum('total_kas') ?: 1;
 
         $perMitra = $perMitraRaw->map(fn($row) => [
-            'nama'      => $row->mitra->nama_usaha ?? 'Mitra #' . $row->mitra_id,  // ← fix
+            'nama'      => $row->mitra->nama_usaha ?? 'Mitra #' . $row->mitra_id,
             'total_kas' => (float) $row->total_kas,
             'omzet'     => (float) $row->total_omzet,
             'persen'    => round($row->total_kas / $totalKasSemua * 100, 1),
         ])->sortByDesc('total_kas')->values();
 
-        return view('kepala-bumdes.laporan-bulanan', compact(
-            'tahunAktif', 'laporanBulanan', 'totalKasTahun', 'totalTransaksiTahun',
+        return compact(
+            'laporanBulanan', 'totalKasTahun', 'totalTransaksiTahun',
             'rataRataPerBulan', 'bulanTerbaik', 'labelGrafik', 'dataKasGrafik', 'perMitra',
-        ));
+        );
     }
 }
