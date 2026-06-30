@@ -1,4 +1,4 @@
-@include('partials.kop-surat')
+@include('theme.partials.kop-surat')
 
 <div style="margin-top: 20px; font-family: 'DejaVu Sans', sans-serif; font-size: 12px; color: #1e293b;">
 
