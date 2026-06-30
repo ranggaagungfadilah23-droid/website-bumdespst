@@ -4,7 +4,6 @@ namespace App\Http\Controllers\KepalaBumdes;
 
 use App\Http\Controllers\Controller;
 use App\Models\BagiHasil;
-use App\Models\Mitra;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Endroid\QrCode\QrCode;
@@ -98,29 +97,21 @@ class LaporanBulananController extends Controller
         $bulanTerbaik     = $laporanBulanan->sortByDesc('total_kas')->first();
         $dataKasGrafik    = $laporanBulanan->pluck('total_kas')->values();
 
-        // PENTING: mitra_id di tabel bagihasils menyimpan user_id (bukan mitras.id),
-        // konsisten dengan BagihasilController & view admin.bagihasil
         $perMitraRaw = BagiHasil::selectRaw('mitra_id, SUM(nominal_bumdes) as total_kas, SUM(total_omzet) as total_omzet')
             ->whereYear('created_at', $tahunAktif)
             ->where('status', 'selesai')
             ->groupBy('mitra_id')
+            ->with('mitra:id,nama_usaha')
             ->get();
 
         $totalKasSemua = $perMitraRaw->sum('total_kas') ?: 1;
 
-        $mitraMap = Mitra::whereIn('user_id', $perMitraRaw->pluck('mitra_id'))
-            ->get()
-            ->groupBy('user_id')
-            ->map(fn($group) => $group->first()->nama_usaha);
-
-        $perMitra = $perMitraRaw->map(function ($row) use ($totalKasSemua, $mitraMap) {
-            return [
-                'nama'      => $mitraMap->get($row->mitra_id, 'Mitra #' . $row->mitra_id),
-                'total_kas' => (float) $row->total_kas,
-                'omzet'     => (float) $row->total_omzet,
-                'persen'    => round($row->total_kas / $totalKasSemua * 100, 1),
-            ];
-        })->sortByDesc('total_kas')->values();
+        $perMitra = $perMitraRaw->map(fn($row) => [
+            'nama'      => $row->mitra->nama_usaha ?? 'Mitra #' . $row->mitra_id,
+            'total_kas' => (float) $row->total_kas,
+            'omzet'     => (float) $row->total_omzet,
+            'persen'    => round($row->total_kas / $totalKasSemua * 100, 1),
+        ])->sortByDesc('total_kas')->values();
 
         return compact(
             'laporanBulanan', 'totalKasTahun', 'totalTransaksiTahun',
