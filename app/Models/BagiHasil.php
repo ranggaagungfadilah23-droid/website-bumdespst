@@ -30,7 +30,7 @@ class BagiHasil extends Model
      */
     public function mitra()
     {
-        return $this->belongsTo(Mitra::class, 'mitra_id', 'user_id');
+        return $this->belongsTo(Mitra::class, 'mitra_id', 'id');
     }
 
     /**

@@ -10,52 +10,40 @@ use Illuminate\Support\Facades\Auth;
 
 class BagihasilController extends Controller
 {
-    public function index()
-    {
-        $bagihasils = BagiHasil::latest()->get();
-        $all_mitra  = Mitra::with('user')->get();
-        return view('admin.bagihasil', compact('bagihasils', 'all_mitra'));
-    }
+    
+ public function store(Request $request)
+{
+    $request->validate([
+        'mitra_id'      => 'required|exists:mitras,id',
+        'total_omzet'   => 'required|numeric|min:0',
+        'persen_bumdes' => 'required|numeric|min:1|max:50',
+    ]);
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'mitra_id'      => 'required',
-            'total_omzet'   => 'required|numeric',
-            'persen_bumdes' => 'required|numeric|min:1|max:99',
-        ]);
+    $persenBumdes = $request->persen_bumdes;
+    $persenMitra  = 100 - $persenBumdes;
+    $omzet        = $request->total_omzet;
 
-        $omzet        = $request->total_omzet;
-        $persenBumdes = $request->persen_bumdes;
-        $persenMitra  = 100 - $persenBumdes;
+    BagiHasil::create([
+        'mitra_id'       => $request->mitra_id, // = mitras.id
+        'tanggal'        => now(),
+        'total_omzet'    => $omzet,
+        'persen_bumdes'  => $persenBumdes,
+        'persen_mitra'   => $persenMitra,
+        'nominal_bumdes' => $omzet * $persenBumdes / 100,
+        'nominal_mitra'  => $omzet * $persenMitra / 100,
+        'status'         => 'PENDING',
+    ]);
 
-        $bh = BagiHasil::where('mitra_id', $request->mitra_id)->latest()->first();
+    return redirect()->route('admin.bagihasil')->with('success', 'Data bagi hasil berhasil ditambahkan.');
+}
 
-        if ($bh) {
-            $bh->update([
-                'total_omzet'    => $omzet,
-                'persen_bumdes'  => $persenBumdes,
-                'persen_mitra'   => $persenMitra,
-                'nominal_bumdes' => $omzet * ($persenBumdes / 100),
-                'nominal_mitra'  => $omzet * ($persenMitra / 100),
-                'status'         => 'PENDING',
-                'tanggal'        => now(),
-            ]);
-        } else {
-            BagiHasil::create([
-                'mitra_id'       => $request->mitra_id,
-                'total_omzet'    => $omzet,
-                'persen_bumdes'  => $persenBumdes,
-                'persen_mitra'   => $persenMitra,
-                'nominal_bumdes' => $omzet * ($persenBumdes / 100),
-                'nominal_mitra'  => $omzet * ($persenMitra / 100),
-                'status'         => 'PENDING',
-                'tanggal'        => now(),
-            ]);
-        }
+public function index()
+{
+    $bagihasils = BagiHasil::with('mitra.user')->latest('tanggal')->get();
+    $all_mitra  = Mitra::with('user')->whereHas('user', fn($q) => $q->where('status', 'aktif'))->get();
 
-        return redirect()->back()->with('success', 'Data bagi hasil berhasil disimpan!');
-    }
+    return view('admin.bagihasil', compact('bagihasils', 'all_mitra'));
+}
 
    public function confirm(Request $request)
 {

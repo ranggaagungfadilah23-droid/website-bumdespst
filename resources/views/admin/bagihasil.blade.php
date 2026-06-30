@@ -46,7 +46,7 @@
                 </thead>
                 <tbody>
                     @forelse($bagihasils as $bh)
-                    @php $mitra = \App\Models\Mitra::with('user')->where('user_id', $bh->mitra_id)->first(); @endphp
+                    @php $mitra = $bh->mitra; @endphp
                     <tr>
                         <td data-label="Mitra">
                             <p class="admin-user-name">{{ $mitra->nama_usaha ?? '-' }}</p>
@@ -121,7 +121,7 @@
                     <select name="mitra_id" id="select_mitra" class="admin-form-control" required>
                         <option value="">-- Pilih Mitra BUMDes --</option>
                         @foreach($all_mitra as $m)
-                            <option value="{{ $m->user_id }}">{{ $m->nama_usaha }} ({{ $m->user->name }})</option>
+                            <option value="{{ $m->id }}">{{ $m->nama_usaha }} ({{ $m->user->name }})</option>
                         @endforeach
                     </select>
                 </div>
