@@ -57,22 +57,23 @@ class BagihasilController extends Controller
         return redirect()->back()->with('success', 'Data bagi hasil berhasil disimpan!');
     }
 
-   public function confirm(Request $request)
-{
-    $bh    = BagiHasil::findOrFail($request->id);
-    $mitra = Mitra::find($bh->mitra_id);   // langsung cari berdasarkan id mitra, bukan user_id
+    public function confirm(Request $request)
+    {
+        $bh    = BagiHasil::findOrFail($request->id);
+        $mitra = Mitra::where('user_id', $bh->mitra_id)->first();
 
-    $bh->update(['status' => 'SELESAI']);
+        $bh->update(['status' => 'SELESAI']);
 
-    ActivityLog::create([
-        'user_name' => auth()->user()->name,
-        'action'    => 'Konfirmasi',
-        'details'   => 'Mengkonfirmasi bagi hasil mitra: ' . ($mitra->nama_usaha ?? '-') .
-                       ' — Nominal BUMDes: Rp ' . number_format($bh->nominal_bumdes, 0, ',', '.'),
-    ]);
+        // ✅ Log
+        ActivityLog::create([
+            'user_name' => auth()->user()->name,
+            'action'    => 'Konfirmasi',
+            'details'   => 'Mengkonfirmasi bagi hasil mitra: ' . ($mitra->nama_usaha ?? '-') .
+                           ' — Nominal BUMDes: Rp ' . number_format($bh->nominal_bumdes, 0, ',', '.'),
+        ]);
 
-    return redirect()->back()->with('success', 'Bagi hasil mitra BUMDes berhasil dikonfirmasi!');
-}
+        return redirect()->back()->with('success', 'Bagi hasil mitra BUMDes berhasil dikonfirmasi!');
+    }
 
     public function getOmzet($mitra_id)
     {
