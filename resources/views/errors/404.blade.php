@@ -324,10 +324,12 @@
                 <span>Halaman dituju</span>
                 <span class="val" title="{{ request()->path() }}">{{ request()->path() }}</span>
             </div>
-            <div class="info-row">
-                <span>Keterangan</span>
-                <span class="val">Akses tidak diizinkan</span>
-            </div>
+           <div class="info-row">
+    <span>Keterangan</span>
+    <span class="val" title="{{ $exception->getMessage() ?: 'Akses tidak diizinkan' }}">
+        {{ $exception->getMessage() ?: 'Akses tidak diizinkan' }}
+    </span>
+</div>
         </div>
 
         <div class="btn-group">
