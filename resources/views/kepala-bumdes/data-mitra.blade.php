@@ -1,11 +1,13 @@
 @extends('theme.default')
 @section('title', 'Data Mitra - BUMDes Patimban')
+
 @push('navbar-search')
-<div class="flex items-center">
-    <form action="{{ route('global.search') }}" method="GET" class="flex items-center w-full max-w-[140px] sm:max-w-xs md:max-w-none">
+{{-- HANYA tampil di laptop/tablet ke atas --}}
+<div class="hidden md:flex items-center">
+    <form action="{{ route('global.search') }}" method="GET" class="flex items-center w-full md:w-auto">
         <input type="text" name="q" placeholder="Cari..." value="{{ request('q') }}"
-               class="border border-slate-200 rounded-l-xl px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm outline-none focus:border-emerald-500 w-full md:w-64">
-        <button type="submit" class="bg-emerald-600 text-white px-3 py-1 md:px-4 md:py-1.5 text-xs md:text-sm rounded-r-xl font-bold hover:bg-emerald-700 transition shrink-0">
+               class="border border-slate-200 rounded-l-xl px-3 py-1.5 text-sm outline-none focus:border-emerald-500 w-64">
+        <button type="submit" class="bg-emerald-600 text-white px-4 py-1.5 text-sm rounded-r-xl font-bold hover:bg-emerald-700 transition shrink-0">
             CARI
         </button>
     </form>
@@ -18,6 +20,18 @@
 
 @section('content')
     <div class="p-3 sm:p-6">
+
+        {{-- HANYA tampil di mobile, taruh di bawah header sebelum judul --}}
+        <div class="md:hidden mb-4">
+            <form action="{{ route('global.search') }}" method="GET" class="flex items-center w-full">
+                <input type="text" name="q" placeholder="Cari mitra..." value="{{ request('q') }}"
+                       class="border border-slate-200 rounded-l-xl px-3 py-2 text-sm outline-none focus:border-emerald-500 w-full">
+                <button type="submit" class="bg-emerald-600 text-white px-4 py-2 text-sm rounded-r-xl font-bold hover:bg-emerald-700 transition shrink-0">
+                    CARI
+                </button>
+            </form>
+        </div>
+
         <div class="flex justify-between items-center mb-4 sm:mb-6">
             <div>
                 <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Data Mitra BUMDes</h1>
@@ -33,7 +47,7 @@
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
 
-            {{-- Tablet ke atas: tabel penuh (overflow-x-auto sebagai jaring pengaman kalau layar pas-pasan) --}}
+            {{-- Tablet ke atas: tabel penuh --}}
             <div class="hidden md:block overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -71,7 +85,7 @@
                 </table>
             </div>
 
-            {{-- Mobile: card list, semua data tampil tanpa scroll horizontal --}}
+            {{-- Mobile: card list --}}
             <div class="md:hidden divide-y divide-gray-100">
                 @forelse ($mitras as $mitra)
                     <div class="p-4">
