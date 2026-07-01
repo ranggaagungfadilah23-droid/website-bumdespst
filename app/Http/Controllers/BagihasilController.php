@@ -41,7 +41,11 @@ class BagihasilController extends Controller
 
 public function index()
 {
-    $bagihasils = BagiHasil::with('mitra.user')->latest('tanggal')->get();
+    $bagihasils = BagiHasil::with('mitra.user')
+        ->orderByRaw("FIELD(status, 'PENDING', 'SELESAI')")
+        ->latest('tanggal')
+        ->get();
+
     $all_mitra  = Mitra::with('user')->whereHas('user', fn($q) => $q->where('status', 'aktif'))->get();
 
     return view('admin.bagihasil', compact('bagihasils', 'all_mitra'));
