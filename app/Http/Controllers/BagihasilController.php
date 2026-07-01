@@ -7,6 +7,7 @@ use App\Models\Mitra;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon; 
 
 class BagihasilController extends Controller
