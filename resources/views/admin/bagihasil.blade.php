@@ -39,6 +39,16 @@
         </div>
     @endif
 
+    @php
+        // Helper: resolve Mitra dari mitra_id, coba sebagai Mitra->id dulu, fallback ke user_id.
+        // Menutupi inkonsistensi data lama pada kolom mitra_id di tabel bagihasils.
+        $resolveMitra = function ($mitraId) {
+            if (!$mitraId) return null;
+            return \App\Models\Mitra::find($mitraId)
+                ?? \App\Models\Mitra::where('user_id', $mitraId)->first();
+        };
+    @endphp
+
     <div class="admin-card">
         <div class="admin-table-wrap admin-table-wrap--cards">
             <table class="admin-table admin-table--responsive">
@@ -55,7 +65,9 @@
                 </thead>
                 <tbody>
                     @forelse($bagihasils as $bh)
-                    @php $mitra = $bh->mitra; @endphp
+                    @php
+                        $mitra = $bh->mitra ?? $resolveMitra($bh->mitra_id);
+                    @endphp
                     <tr>
                         <td data-label="Mitra">
                             <p class="admin-user-name">{{ $mitra->nama_usaha ?? '-' }}</p>
