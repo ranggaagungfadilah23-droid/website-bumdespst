@@ -17,7 +17,7 @@
         </button>
     </div>
 
-    {{-- Toast notifikasi (menggantikan alert statis) --}}
+    {{-- Toast notifikasi --}}
     @if(session('success'))
         <div id="toastNotif" class="admin-toast admin-toast--success">
             <div class="admin-toast-icon"><i class="fas fa-check-circle"></i></div>
@@ -39,16 +39,6 @@
         </div>
     @endif
 
-    @php
-        // Helper: resolve Mitra dari mitra_id, coba sebagai Mitra->id dulu, fallback ke user_id.
-        // Menutupi inkonsistensi data lama pada kolom mitra_id di tabel bagihasils.
-        $resolveMitra = function ($mitraId) {
-            if (!$mitraId) return null;
-            return \App\Models\Mitra::find($mitraId)
-                ?? \App\Models\Mitra::where('user_id', $mitraId)->first();
-        };
-    @endphp
-
     <div class="admin-card">
         <div class="admin-table-wrap admin-table-wrap--cards">
             <table class="admin-table admin-table--responsive">
@@ -65,9 +55,7 @@
                 </thead>
                 <tbody>
                     @forelse($bagihasils as $bh)
-                    @php
-                        $mitra = $bh->mitra ?? $resolveMitra($bh->mitra_id);
-                    @endphp
+                    @php $mitra = $bh->mitra; @endphp
                     <tr>
                         <td data-label="Mitra">
                             <p class="admin-user-name">{{ $mitra->nama_usaha ?? '-' }}</p>
@@ -95,15 +83,27 @@
                             @endif
                         </td>
                         <td data-label="Aksi" class="text-center">
-                            @if($bh->status == 'PENDING')
-                                <button type="button"
-                                    class="admin-btn admin-btn--success admin-btn--sm"
-                                    onclick="openConfirmModal({{ $bh->id }}, '{{ addslashes($mitra->nama_usaha ?? '-') }}', '{{ number_format($bh->nominal_bumdes, 0, ',', '.') }}')">
-                                    <i class="fas fa-check"></i> Konfirmasi
-                                </button>
-                            @else
-                                <span style="font-size:0.75rem;color:#8b949e;font-style:italic;">Sudah selesai</span>
-                            @endif
+                            <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+                                @if($bh->status == 'PENDING')
+                                    <button type="button"
+                                        class="admin-btn admin-btn--ghost admin-btn--sm"
+                                        onclick="openEditModal({
+                                            id: {{ $bh->id }},
+                                            mitraId: {{ $bh->mitra_id }},
+                                            omzet: {{ $bh->total_omzet }},
+                                            persen: {{ $bh->persen_bumdes ?? 10 }}
+                                        })">
+                                        <i class="fas fa-pen"></i> Edit
+                                    </button>
+                                    <button type="button"
+                                        class="admin-btn admin-btn--success admin-btn--sm"
+                                        onclick="openConfirmModal({{ $bh->id }}, '{{ addslashes($mitra->nama_usaha ?? '-') }}', '{{ number_format($bh->nominal_bumdes, 0, ',', '.') }}')">
+                                        <i class="fas fa-check"></i> Konfirmasi
+                                    </button>
+                                @else
+                                    <span style="font-size:0.75rem;color:#8b949e;font-style:italic;">Sudah selesai</span>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -173,7 +173,58 @@
     </div>
 </div>
 
-{{-- MODAL KONFIRMASI (pengganti native confirm()) --}}
+{{-- MODAL EDIT --}}
+<div id="modalEdit" class="admin-modal">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 class="admin-modal-title">Edit Data Bagi Hasil</h3>
+            <button type="button" onclick="closeModal('modalEdit')" class="admin-btn admin-btn--ghost admin-btn--icon" aria-label="Tutup">&times;</button>
+        </div>
+        <form id="formEdit" method="POST">
+            @csrf
+            @method('PATCH')
+            <div class="admin-modal-body" style="display:flex;flex-direction:column;gap:16px;">
+                <div>
+                    <label class="admin-form-label">Pilih Mitra</label>
+                    <select name="mitra_id" id="edit_select_mitra" class="admin-form-control" required>
+                        <option value="">-- Pilih Mitra BUMDes --</option>
+                        @foreach($all_mitra as $m)
+                            <option value="{{ $m->id }}">{{ $m->nama_usaha }} ({{ $m->user->name }})</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="admin-form-label">Total Omzet (Rp)</label>
+                    <input type="number" id="edit_total_omzet" name="total_omzet" class="admin-form-control" style="font-weight:700;font-size:1.1rem;" required>
+                </div>
+                <div>
+                    <label class="admin-form-label">
+                        Persentase BUMDes: <span id="edit_label_persen" style="color:#0969da;font-weight:800;">10%</span>
+                        &nbsp;|&nbsp; Mitra: <span id="edit_label_persen_mitra_top" style="color:#059669;font-weight:800;">90%</span>
+                    </label>
+                    <input type="range" id="edit_persen_bumdes" name="persen_bumdes" min="1" max="50" value="10" style="width:100%;accent-color:#0969da;cursor:pointer;">
+                    <div style="display:flex;justify-content:space-between;font-size:0.625rem;color:#8b949e;margin-top:4px;"><span>1%</span><span>50%</span></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div style="background:#eff6ff;padding:14px;border-radius:12px;">
+                        <span class="admin-form-label" style="color:#0969da;">BUMDes (<span id="edit_label_persen_bumdes">10</span>%)</span>
+                        <p id="edit_preview_bumdes" style="font-size:0.875rem;font-weight:800;color:#1e40af;margin-top:4px;">Rp 0</p>
+                    </div>
+                    <div style="background:#ecfdf5;padding:14px;border-radius:12px;">
+                        <span class="admin-form-label" style="color:#059669;">Mitra (<span id="edit_label_persen_mitra">90</span>%)</span>
+                        <p id="edit_preview_mitra" style="font-size:0.875rem;font-weight:800;color:#047857;margin-top:4px;">Rp 0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button type="button" onclick="closeModal('modalEdit')" class="admin-btn admin-btn--ghost">Batal</button>
+                <button type="submit" class="admin-btn admin-btn--primary">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- MODAL KONFIRMASI --}}
 <div id="modalConfirm" class="admin-modal">
     <div class="admin-modal-panel admin-modal-panel--sm">
         <div class="admin-confirm-icon">
@@ -199,7 +250,6 @@
 </div>
 
 <style>
-/* Modal kecil untuk confirm */
 .admin-modal-panel--sm {
     max-width: 420px;
     text-align: center;
@@ -239,7 +289,6 @@
     justify-content: center;
 }
 
-/* Toast notifikasi */
 .admin-toast {
     display: flex;
     align-items: flex-start;
@@ -310,6 +359,33 @@ function openConfirmModal(id, namaMitra, nominal) {
     openModal('modalConfirm');
 }
 
+// ---- EDIT MODAL ----
+function openEditModal(data) {
+    document.getElementById('formEdit').action = `/admin/bagihasil/${data.id}`;
+    document.getElementById('edit_select_mitra').value = data.mitraId;
+    document.getElementById('edit_total_omzet').value = data.omzet;
+    document.getElementById('edit_persen_bumdes').value = data.persen;
+    hitungBagiEdit();
+    openModal('modalEdit');
+}
+
+function hitungBagiEdit() {
+    const omzet        = parseFloat(document.getElementById('edit_total_omzet').value) || 0;
+    const persenBumdes = parseFloat(document.getElementById('edit_persen_bumdes').value) || 10;
+    const persenMitra  = 100 - persenBumdes;
+
+    document.getElementById('edit_label_persen').innerText           = persenBumdes + '%';
+    document.getElementById('edit_label_persen_mitra_top').innerText = persenMitra + '%';
+    document.getElementById('edit_label_persen_bumdes').innerText    = persenBumdes;
+    document.getElementById('edit_label_persen_mitra').innerText     = persenMitra;
+    document.getElementById('edit_preview_bumdes').innerText         = 'Rp ' + new Intl.NumberFormat('id-ID').format(omzet * persenBumdes / 100);
+    document.getElementById('edit_preview_mitra').innerText          = 'Rp ' + new Intl.NumberFormat('id-ID').format(omzet * persenMitra / 100);
+}
+
+document.getElementById('edit_total_omzet').addEventListener('input', hitungBagiEdit);
+document.getElementById('edit_persen_bumdes').addEventListener('input', hitungBagiEdit);
+
+// ---- INPUT MODAL (existing) ----
 function hitungBagi() {
     const omzet        = parseFloat(document.getElementById('total_omzet').value) || 0;
     const persenBumdes = parseFloat(document.getElementById('persen_bumdes').value) || 10;
@@ -342,6 +418,9 @@ document.getElementById('persen_bumdes').addEventListener('input', hitungBagi);
 
 document.getElementById('modalBagiHasil').addEventListener('click', function(e) {
     if (e.target === this) closeModal('modalBagiHasil');
+});
+document.getElementById('modalEdit').addEventListener('click', function(e) {
+    if (e.target === this) closeModal('modalEdit');
 });
 document.getElementById('modalConfirm').addEventListener('click', function(e) {
     if (e.target === this) closeModal('modalConfirm');

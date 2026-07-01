@@ -8,50 +8,97 @@ use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Carbon\Carbon; 
+use Carbon\Carbon;
 
 class BagihasilController extends Controller
 {
-    
- public function store(Request $request)
-{
-    $request->validate([
-        'mitra_id'      => 'required|exists:mitras,id',
-        'total_omzet'   => 'required|numeric|min:0',
-        'persen_bumdes' => 'required|numeric|min:1|max:50',
-    ]);
+    public function index()
+    {
+        $bagihasils = BagiHasil::with('mitra.user')
+            ->orderByRaw("FIELD(status, 'PENDING', 'SELESAI')")
+            ->latest('tanggal')
+            ->get();
 
-    $persenBumdes = $request->persen_bumdes;
-    $persenMitra  = 100 - $persenBumdes;
-    $omzet        = $request->total_omzet;
+        $all_mitra = Mitra::with('user')->whereHas('user', fn($q) => $q->where('status', 'aktif'))->get();
 
-    BagiHasil::create([
-        'mitra_id'       => $request->mitra_id, // = mitras.id
-        'tanggal'        => now(),
-        'total_omzet'    => $omzet,
-        'persen_bumdes'  => $persenBumdes,
-        'persen_mitra'   => $persenMitra,
-        'nominal_bumdes' => $omzet * $persenBumdes / 100,
-        'nominal_mitra'  => $omzet * $persenMitra / 100,
-        'status'         => 'PENDING',
-    ]);
+        return view('admin.bagihasil', compact('bagihasils', 'all_mitra'));
+    }
 
-    return redirect()->route('admin.bagihasil')->with('success', 'Data bagi hasil berhasil ditambahkan.');
-}
+    public function store(Request $request)
+    {
+        $request->validate([
+            'mitra_id'      => 'required|exists:mitras,id',
+            'total_omzet'   => 'required|numeric|min:0',
+            'persen_bumdes' => 'required|numeric|min:1|max:50',
+        ]);
 
-public function index()
-{
-    $bagihasils = BagiHasil::with('mitra.user')
-        ->orderByRaw("FIELD(status, 'PENDING', 'SELESAI')")
-        ->latest('tanggal')
-        ->get();
+        $persenBumdes = $request->persen_bumdes;
+        $persenMitra  = 100 - $persenBumdes;
+        $omzet        = $request->total_omzet;
 
-    $all_mitra  = Mitra::with('user')->whereHas('user', fn($q) => $q->where('status', 'aktif'))->get();
+        BagiHasil::create([
+            'mitra_id'       => $request->mitra_id, // = mitras.id
+            'tanggal'        => now(),
+            'total_omzet'    => $omzet,
+            'persen_bumdes'  => $persenBumdes,
+            'persen_mitra'   => $persenMitra,
+            'nominal_bumdes' => $omzet * $persenBumdes / 100,
+            'nominal_mitra'  => $omzet * $persenMitra / 100,
+            'status'         => 'PENDING',
+        ]);
 
-    return view('admin.bagihasil', compact('bagihasils', 'all_mitra'));
-}
+        return redirect()->route('admin.bagihasil')->with('success', 'Data bagi hasil berhasil ditambahkan.');
+    }
 
-     public function confirm(Request $request)
+    /**
+     * Update data bagi hasil yang masih PENDING.
+     * Data yang sudah SELESAI tidak boleh diubah lagi (dikunci) supaya laporan tetap konsisten.
+     */
+    public function update(Request $request, $id)
+    {
+        $bh = BagiHasil::findOrFail($id);
+
+        if ($bh->status === 'SELESAI') {
+            return redirect()->back()->with('error', 'Data yang sudah selesai tidak dapat diedit.');
+        }
+
+        $request->validate([
+            'mitra_id'      => 'required|exists:mitras,id',
+            'total_omzet'   => 'required|numeric|min:0',
+            'persen_bumdes' => 'required|numeric|min:1|max:50',
+        ]);
+
+        $persenBumdes = $request->persen_bumdes;
+        $persenMitra  = 100 - $persenBumdes;
+        $omzet        = $request->total_omzet;
+
+        $mitraLama = Mitra::find($bh->mitra_id);
+
+        $bh->update([
+            'mitra_id'       => $request->mitra_id,
+            'total_omzet'    => $omzet,
+            'persen_bumdes'  => $persenBumdes,
+            'persen_mitra'   => $persenMitra,
+            'nominal_bumdes' => $omzet * $persenBumdes / 100,
+            'nominal_mitra'  => $omzet * $persenMitra / 100,
+        ]);
+
+        // Hapus cache laporan bulan terkait supaya data terbaru langsung muncul
+        $bulan = Carbon::parse($bh->tanggal)->month;
+        $tahun = Carbon::parse($bh->tanggal)->year;
+        Cache::forget("laporan_stats_{$bulan}_{$tahun}");
+
+        ActivityLog::create([
+            'user_name' => auth()->user()->name,
+            'action'    => 'Edit',
+            'details'   => 'Mengubah data bagi hasil mitra: ' . ($mitraLama->nama_usaha ?? '-') .
+                           ' — Total Omzet baru: Rp ' . number_format($omzet, 0, ',', '.'),
+        ]);
+
+        return redirect()->route('admin.bagihasil')->with('success', 'Data bagi hasil berhasil diperbarui.');
+    }
+
+    public function confirm(Request $request)
     {
         $bh    = BagiHasil::findOrFail($request->id);
         $mitra = Mitra::find($bh->mitra_id);

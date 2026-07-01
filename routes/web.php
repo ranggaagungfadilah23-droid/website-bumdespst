@@ -101,7 +101,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/bagihasil/store', [BagihasilController::class, 'store'])->name('bagihasil.store');
         Route::patch('/bagihasil/confirm', [BagihasilController::class, 'confirm'])->name('bagihasil.confirm');
         Route::get('/bagihasil/omzet/{mitra_id}', [BagihasilController::class, 'getOmzet'])->name('bagihasil.omzet');
-
+        Route::patch('/admin/bagihasil/{id}', [BagihasilController::class, 'update'])->name('admin.bagihasil.update');
         Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
         Route::post('/laporan/kirim', [AdminController::class, 'kirimLaporan'])->name('laporan.kirim');
       // ✅ BENAR
