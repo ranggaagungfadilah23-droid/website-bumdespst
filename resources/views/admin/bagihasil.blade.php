@@ -133,21 +133,15 @@
         <form action="{{ route('admin.bagihasil.store') }}" method="POST">
             @csrf
             <div class="admin-modal-body" style="display:flex;flex-direction:column;gap:16px;">
-              <div>
-    <label class="admin-form-label">Pilih Mitra</label>
-    <select name="mitra_id" id="edit_select_mitra" class="admin-form-control" required>
-        <option value="">-- Pilih Mitra BUMDes --</option>
-        @foreach($all_mitra as $m)
-            <option value="{{ $m->id }}">{{ $m->nama_usaha }} ({{ $m->user->name ?? '-' }})</option>
-        @endforeach
-        {{-- Fallback: mitra non-aktif yang mungkin punya data bagi hasil lama --}}
-        @foreach($bagihasils->pluck('mitra')->filter()->unique('id') as $m)
-            @if(!$all_mitra->contains('id', $m->id))
-                <option value="{{ $m->id }}">{{ $m->nama_usaha }} ({{ $m->user->name ?? '-' }}) — nonaktif</option>
-            @endif
-        @endforeach
-    </select>
-</div>
+                <div>
+                    <label class="admin-form-label">Pilih Mitra</label>
+                    <select name="mitra_id" id="select_mitra" class="admin-form-control" required>
+                        <option value="">-- Pilih Mitra BUMDes --</option>
+                        @foreach($all_mitra as $m)
+                            <option value="{{ $m->id }}">{{ $m->nama_usaha }} ({{ $m->user->name }})</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div>
                     <label class="admin-form-label">Total Omzet (Rp)</label>
                     <input type="number" id="total_omzet" name="total_omzet" class="admin-form-control" style="font-weight:700;font-size:1.1rem;" placeholder="Contoh: 5000000" required>
