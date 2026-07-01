@@ -89,15 +89,11 @@
 
     {{-- Footer --}}
     <div class="sidebar-footer">
-        <div class="sidebar-profile">
-            <div class="sidebar-avatar">
-                {{ strtoupper(substr(Auth::user()->name ?? 'M', 0, 1)) }}
-            </div>
-            <div class="sidebar-profile-info">
-                <div class="sidebar-profile-name">{{ Auth::user()->name ?? 'Mitra BUMDes' }}</div>
-                <div class="sidebar-profile-role">Mitra Resmi</div>
-            </div>
-        </div>
+        @include('theme.partials.sidebar-account-menu', [
+            'roleLabel'       => 'Mitra Resmi',
+            'fallbackInitial' => 'M',
+            'fallbackName'    => 'Mitra BUMDes',
+        ])
     </div>
 
 </aside>
