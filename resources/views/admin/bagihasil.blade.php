@@ -17,16 +17,25 @@
         </button>
     </div>
 
+    {{-- Toast notifikasi (menggantikan alert statis) --}}
     @if(session('success'))
-        <div class="admin-alert admin-alert--success">
-            <i class="fas fa-check-circle"></i>
-            <span>{{ session('success') }}</span>
+        <div id="toastNotif" class="admin-toast admin-toast--success">
+            <div class="admin-toast-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="admin-toast-body">
+                <p class="admin-toast-title">Berhasil</p>
+                <p class="admin-toast-msg">{{ session('success') }}</p>
+            </div>
+            <button type="button" class="admin-toast-close" onclick="closeToast()">&times;</button>
         </div>
     @endif
     @if(session('error'))
-        <div class="admin-alert admin-alert--error">
-            <i class="fas fa-times-circle"></i>
-            <span>{{ session('error') }}</span>
+        <div id="toastNotif" class="admin-toast admin-toast--error">
+            <div class="admin-toast-icon"><i class="fas fa-times-circle"></i></div>
+            <div class="admin-toast-body">
+                <p class="admin-toast-title">Gagal</p>
+                <p class="admin-toast-msg">{{ session('error') }}</p>
+            </div>
+            <button type="button" class="admin-toast-close" onclick="closeToast()">&times;</button>
         </div>
     @endif
 
@@ -75,15 +84,11 @@
                         </td>
                         <td data-label="Aksi" class="text-center">
                             @if($bh->status == 'PENDING')
-                                <form action="{{ route('admin.bagihasil.confirm') }}" method="POST">
-                                    @csrf
-                                    @method('PATCH')
-                                    <input type="hidden" name="id" value="{{ $bh->id }}">
-                                    <button type="submit" class="admin-btn admin-btn--success admin-btn--sm"
-                                        onclick="return confirm('Konfirmasi bagi hasil ini selesai?')">
-                                        <i class="fas fa-check"></i> Konfirmasi
-                                    </button>
-                                </form>
+                                <button type="button"
+                                    class="admin-btn admin-btn--success admin-btn--sm"
+                                    onclick="openConfirmModal({{ $bh->id }}, '{{ addslashes($mitra->nama_usaha ?? '-') }}', '{{ number_format($bh->nominal_bumdes, 0, ',', '.') }}')">
+                                    <i class="fas fa-check"></i> Konfirmasi
+                                </button>
                             @else
                                 <span style="font-size:0.75rem;color:#8b949e;font-style:italic;">Sudah selesai</span>
                             @endif
@@ -156,9 +161,142 @@
     </div>
 </div>
 
+{{-- MODAL KONFIRMASI (pengganti native confirm()) --}}
+<div id="modalConfirm" class="admin-modal">
+    <div class="admin-modal-panel admin-modal-panel--sm">
+        <div class="admin-confirm-icon">
+            <i class="fas fa-hand-holding-usd"></i>
+        </div>
+        <h3 class="admin-confirm-title">Konfirmasi Bagi Hasil</h3>
+        <p class="admin-confirm-text">
+            Tandai bagi hasil milik <strong id="confirmNamaMitra">-</strong> sebagai <strong>selesai</strong>?<br>
+            Nominal untuk BUMDes: <strong style="color:#0969da;">Rp <span id="confirmNominal">0</span></strong>
+        </p>
+        <form id="formConfirm" action="{{ route('admin.bagihasil.confirm') }}" method="POST">
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="id" id="confirmId" value="">
+            <div class="admin-confirm-actions">
+                <button type="button" onclick="closeModal('modalConfirm')" class="admin-btn admin-btn--ghost">Batal</button>
+                <button type="submit" class="admin-btn admin-btn--success">
+                    <i class="fas fa-check"></i> Ya, Konfirmasi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Modal kecil untuk confirm */
+.admin-modal-panel--sm {
+    max-width: 420px;
+    text-align: center;
+    padding: 32px 28px 24px;
+}
+.admin-confirm-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: #ecfdf5;
+    color: #059669;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+.admin-confirm-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #1f2328;
+    margin-bottom: 8px;
+}
+.admin-confirm-text {
+    font-size: 0.9rem;
+    color: #57606a;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+.admin-confirm-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+.admin-confirm-actions .admin-btn {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Toast notifikasi */
+.admin-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    border-left: 4px solid;
+    animation: toastSlideIn 0.35s ease;
+}
+.admin-toast--success {
+    background: #ecfdf5;
+    border-left-color: #059669;
+}
+.admin-toast--error {
+    background: #fef2f2;
+    border-left-color: #dc2626;
+}
+.admin-toast-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    margin-top: 2px;
+}
+.admin-toast--success .admin-toast-icon { color: #059669; }
+.admin-toast--error .admin-toast-icon { color: #dc2626; }
+.admin-toast-body { flex: 1; }
+.admin-toast-title {
+    font-weight: 700;
+    font-size: 0.875rem;
+    margin: 0 0 2px;
+    color: #1f2328;
+}
+.admin-toast-msg {
+    font-size: 0.8rem;
+    color: #57606a;
+    margin: 0;
+}
+.admin-toast-close {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #8b949e;
+    padding: 0 2px;
+}
+.admin-toast-close:hover { color: #1f2328; }
+
+@keyframes toastSlideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes toastFadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; transform: translateY(-8px); }
+}
+</style>
+
 <script>
 function openModal(id) { document.getElementById(id)?.classList.add('is-open'); document.body.style.overflow = 'hidden'; }
 function closeModal(id) { document.getElementById(id)?.classList.remove('is-open'); document.body.style.overflow = ''; }
+
+function openConfirmModal(id, namaMitra, nominal) {
+    document.getElementById('confirmId').value = id;
+    document.getElementById('confirmNamaMitra').innerText = namaMitra;
+    document.getElementById('confirmNominal').innerText = nominal;
+    openModal('modalConfirm');
+}
 
 function hitungBagi() {
     const omzet        = parseFloat(document.getElementById('total_omzet').value) || 0;
@@ -192,6 +330,22 @@ document.getElementById('persen_bumdes').addEventListener('input', hitungBagi);
 
 document.getElementById('modalBagiHasil').addEventListener('click', function(e) {
     if (e.target === this) closeModal('modalBagiHasil');
+});
+document.getElementById('modalConfirm').addEventListener('click', function(e) {
+    if (e.target === this) closeModal('modalConfirm');
+});
+
+// Toast auto-hilang
+function closeToast() {
+    const toast = document.getElementById('toastNotif');
+    if (!toast) return;
+    toast.style.animation = 'toastFadeOut 0.3s ease forwards';
+    setTimeout(() => toast.remove(), 300);
+}
+document.addEventListener('DOMContentLoaded', function () {
+    if (document.getElementById('toastNotif')) {
+        setTimeout(closeToast, 4000);
+    }
 });
 </script>
 @endsection
