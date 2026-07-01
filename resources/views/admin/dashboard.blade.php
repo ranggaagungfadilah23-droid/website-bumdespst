@@ -25,6 +25,14 @@
         $kasBulan     = \App\Models\BagiHasil::whereMonth('tanggal',now()->month)->whereYear('tanggal',now()->year)->where('status','SELESAI')->sum('nominal_bumdes');
         $bhSelesai    = \App\Models\BagiHasil::whereMonth('tanggal',now()->month)->whereYear('tanggal',now()->year)->where('status','SELESAI')->count();
         $bhPending    = \App\Models\BagiHasil::whereMonth('tanggal',now()->month)->whereYear('tanggal',now()->year)->where('status','PENDING')->count();
+
+        // Helper: resolve Mitra dari mitra_id, coba sebagai Mitra->id dulu, fallback ke user_id.
+        // Ini menutupi inkonsistensi data lama di kolom mitra_id pada tabel bagihasils.
+        $resolveMitra = function ($mitraId) {
+            if (!$mitraId) return null;
+            return \App\Models\Mitra::find($mitraId)
+                ?? \App\Models\Mitra::where('user_id', $mitraId)->first();
+        };
     @endphp
 
     <div class="admin-stat-grid admin-stat-grid--6">
@@ -69,7 +77,13 @@
         $mitraChart = \App\Models\Bagihasil::whereMonth('tanggal',now()->month)
             ->whereYear('tanggal',now()->year)->where('status','SELESAI')->get()
             ->groupBy('mitra_id')
-            ->map(fn($g)=>['nama'=>optional(\App\Models\Mitra::where('user_id',$g->first()->mitra_id)->first())->nama_usaha??'-','omzet'=>$g->sum('total_omzet')])
+            ->map(function ($g) use ($resolveMitra) {
+                $mitra = $resolveMitra($g->first()->mitra_id);
+                return [
+                    'nama'  => $mitra->nama_usaha ?? ($mitra->user->name ?? '-'),
+                    'omzet' => $g->sum('total_omzet'),
+                ];
+            })
             ->values();
 
         $recents = \App\Models\Bagihasil::latest()->take(5)->get();
@@ -113,10 +127,10 @@
                     </thead>
                     <tbody>
                         @forelse($recents as $bh)
-                        @php $m = \App\Models\Mitra::where('user_id',$bh->mitra_id)->first(); @endphp
+                        @php $m = $resolveMitra($bh->mitra_id); @endphp
                         <tr>
                             <td data-label="Mitra">
-                                <span class="admin-user-name">{{ $m->nama_usaha ?? '-' }}</span>
+                                <span class="admin-user-name">{{ $m->nama_usaha ?? ($m->user->name ?? '-') }}</span>
                             </td>
                             <td data-label="Omzet" class="text-right">
                                 <span style="font-family:ui-monospace,monospace;font-size:0.75rem;">Rp {{ number_format($bh->total_omzet,0,',','.') }}</span>
