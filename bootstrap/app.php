@@ -22,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
         'auth'        => \App\Http\Middleware\Authenticate::class,
     ]);
 
+    // Tambahkan ini: middleware demo dijalankan untuk semua request web
+    $middleware->appendToGroup('web', \App\Http\Middleware\RestrictDemoAccount::class);
+
     $middleware->validateCsrfTokens(except: [
         'midtrans/callback',
         'logout',
