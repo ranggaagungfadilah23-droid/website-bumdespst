@@ -55,11 +55,15 @@
 
     {{-- Footer --}}
     <div class="sidebar-footer">
-        @include('theme.partials.sidebar-account-menu', [
-            'roleLabel'       => 'Kepala BUMDes',
-            'fallbackInitial' => 'K',
-            'fallbackName'    => 'Kepala BUMDes',
-        ])
+        <div class="sidebar-profile">
+            <div class="sidebar-avatar">
+                {{ strtoupper(substr(Auth::user()->name ?? 'K', 0, 1)) }}
+            </div>
+            <div class="sidebar-profile-info">
+                <div class="sidebar-profile-name">{{ Auth::user()->name ?? 'Kepala BUMDes' }}</div>
+                <div class="sidebar-profile-role">Kepala BUMDes</div>
+            </div>
+        </div>
     </div>
 
 </aside>

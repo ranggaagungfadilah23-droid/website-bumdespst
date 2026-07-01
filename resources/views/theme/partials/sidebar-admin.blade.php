@@ -63,11 +63,15 @@
 
     {{-- Footer --}}
     <div class="sidebar-footer">
-        @include('theme.partials.sidebar-account-menu', [
-            'roleLabel'       => 'Administrator',
-            'fallbackInitial' => 'A',
-            'fallbackName'    => 'Admin',
-        ])
+        <div class="sidebar-profile">
+            <div class="sidebar-avatar">
+                {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
+            </div>
+            <div class="sidebar-profile-info">
+                <div class="sidebar-profile-name">{{ Auth::user()->name ?? 'Admin' }}</div>
+                <div class="sidebar-profile-role">Administrator</div>
+            </div>
+        </div>
     </div>
 
 </aside>
