@@ -45,22 +45,27 @@ public function index()
     return view('admin.bagihasil', compact('bagihasils', 'all_mitra'));
 }
 
-   public function confirm(Request $request)
-{
-    $bh    = BagiHasil::findOrFail($request->id);
-    $mitra = Mitra::find($bh->mitra_id);   // langsung cari berdasarkan id mitra, bukan user_id
+     public function confirm(Request $request)
+    {
+        $bh    = BagiHasil::findOrFail($request->id);
+        $mitra = Mitra::find($bh->mitra_id);
 
-    $bh->update(['status' => 'SELESAI']);
+        $bh->update(['status' => 'SELESAI']);
 
-    ActivityLog::create([
-        'user_name' => auth()->user()->name,
-        'action'    => 'Konfirmasi',
-        'details'   => 'Mengkonfirmasi bagi hasil mitra: ' . ($mitra->nama_usaha ?? '-') .
-                       ' — Nominal BUMDes: Rp ' . number_format($bh->nominal_bumdes, 0, ',', '.'),
-    ]);
+        // Hapus cache laporan supaya data terbaru langsung muncul
+        $bulan = Carbon::parse($bh->tanggal)->month;
+        $tahun = Carbon::parse($bh->tanggal)->year;
+        Cache::forget("laporan_stats_{$bulan}_{$tahun}");
 
-    return redirect()->back()->with('success', 'Bagi hasil mitra BUMDes berhasil dikonfirmasi!');
-}
+        ActivityLog::create([
+            'user_name' => auth()->user()->name,
+            'action'    => 'Konfirmasi',
+            'details'   => 'Mengkonfirmasi bagi hasil mitra: ' . ($mitra->nama_usaha ?? '-') .
+                           ' — Nominal BUMDes: Rp ' . number_format($bh->nominal_bumdes, 0, ',', '.'),
+        ]);
+
+        return redirect()->back()->with('success', 'Bagi hasil mitra BUMDes berhasil dikonfirmasi!');
+    }
 
     public function getOmzet($mitra_id)
     {
